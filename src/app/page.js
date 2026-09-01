@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import AppRouter from './router';
+import dynamic from 'next/dynamic';
+
+// استيراد الراوتر مع تعطيل الـ SSR تماماً ليعمل في المتصفح فقط
+const AppRouter = dynamic(() => import('./router'), { ssr: false });
 
 export default function Home() {
-  useEffect(() => {
-    // التحقق من أن الكود يعمل في المتصفح
-    if (typeof window !== 'undefined') {
-      // يمكنك استخدام document هنا بأمان[cite: 13]
-      console.log(document.title);
-    }
-  }, []);
-
   return <AppRouter />;
 }
