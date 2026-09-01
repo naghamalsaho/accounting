@@ -9,6 +9,13 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lang, setLang] = useState('ar');
   
+  // حالة نافذة الشات الحقيقي
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatLog, setChatLog] = useState([
+    { sender: 'support', text: 'أهلاً بك! أنا أحمد، مستشارك المالي المعتمد في مزيد. كيف يمكنني مساعدتك في امتثال شركتك اليوم؟', time: 'الآن' }
+  ]);
+  
   // حالة تبديل الأسعار (شهري / سنوي)
   const [billingCycle, setBillingCycle] = useState('annual');
 
@@ -142,7 +149,7 @@ export default function Home() {
       ),
       description: 'أصدر فواتير احترافية تعكس هوية علامتك التجارية في ثوانٍ معدودة. متوافقة بالكامل مع متطلبات الضرائب المحلية، مع ميزات التذكير الآلي للمدفوعات المتأخرة.',
       bullets: ['تخصيص كامل للتصميم', 'روابط دفع إلكترونية'],
-      image: 'https://images.unsplash.com/photo-1556742049-0a670fc8078a?w=800&auto=format&fit=crop&q=80',
+      image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=80',
       imageAlt: 'الفوترة الإلكترونية والدفع الذكي',
       imagePosition: 'right'
     }
@@ -189,8 +196,8 @@ export default function Home() {
       
       {/* 1. Top Announcement Bar */}
       {showBanner && (
-        <div className="bg-gray-900 text-white text-xs md:text-sm py-2.5 px-4 shadow-sm relative z-50 border-b border-gray-800 transition-all">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="bg-gray-900 text-white text-xs md:text-sm py-2.5 px-3 md:px-6 shadow-sm relative z-50 border-b border-gray-800 transition-all">
+          <div className="w-full max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-2 mx-auto text-center font-medium">
               <span className="bg-amber-500 text-gray-900 px-2.5 py-0.5 rounded-full text-xs font-bold border border-amber-400">
                 عرض خاص 🎁
@@ -213,7 +220,7 @@ export default function Home() {
 
       {/* 2. Header Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-3 group cursor-pointer">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-900 font-bold text-white shadow-md group-hover:bg-amber-500 group-hover:text-gray-900 transition-colors">
@@ -228,6 +235,7 @@ export default function Home() {
           <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700">
             <a href="#features" className="hover:text-amber-600 transition-colors">المميزات</a>
             <a href="#why-choose-us" className="hover:text-amber-600 transition-colors">لماذا مزيد؟</a>
+            <a href="#advisory" className="hover:text-amber-600 transition-colors">المستشارون</a>
             <a href="#mobile-app" className="hover:text-amber-600 transition-colors">التطبيق</a>
             <a href="#pricing" className="hover:text-amber-600 transition-colors">الأسعار</a>
             <a href="#faq" className="hover:text-amber-600 transition-colors">الأسئلة الشائعة</a>
@@ -270,6 +278,7 @@ export default function Home() {
           <div className="lg:hidden bg-white border-b border-gray-200 px-6 py-4 space-y-3 font-semibold text-sm shadow-xl">
             <a href="#features" className="block py-2 text-gray-700 hover:text-amber-600">المميزات</a>
             <a href="#why-choose-us" className="block py-2 text-gray-700 hover:text-amber-600">لماذا مزيد؟</a>
+            <a href="#advisory" className="block py-2 text-gray-700 hover:text-amber-600">المستشارون</a>
             <a href="#mobile-app" className="block py-2 text-gray-700 hover:text-amber-600">التطبيق</a>
             <a href="#pricing" className="block py-2 text-gray-700 hover:text-amber-600">الأسعار</a>
             <a href="#faq" className="block py-2 text-gray-700 hover:text-amber-600">الأسئلة الشائعة</a>
@@ -286,7 +295,7 @@ export default function Home() {
         <div className="absolute top-1/3 right-10 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
         <div className="absolute bottom-10 left-10 w-80 h-80 bg-gray-200/50 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             <motion.div 
@@ -429,7 +438,7 @@ export default function Home() {
         <div className="absolute top-1/3 right-10 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-slate-200/30 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
             <motion.div 
@@ -471,10 +480,10 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
               whileHover={{ y: -8 }}
-              className="bg-white border border-gray-200/80 hover:border-amber-400 p-7 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
+              className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
                   ⚡
                 </div>
                 <div className="space-y-2">
@@ -499,10 +508,10 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
               whileHover={{ y: -8 }}
-              className="bg-white border border-gray-200/80 hover:border-emerald-400 p-7 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
+              className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                   🛡️
                 </div>
                 <div className="space-y-2">
@@ -527,10 +536,10 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ y: -8 }}
-              className="bg-white border border-gray-200/80 hover:border-blue-400 p-7 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
+              className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
                   📊
                 </div>
                 <div className="space-y-2">
@@ -555,10 +564,10 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ y: -8 }}
-              className="bg-white border border-gray-200/80 hover:border-purple-400 p-7 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
+              className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
                   🇦🇪
                 </div>
                 <div className="space-y-2">
@@ -581,11 +590,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. Integrated System Section (الميزات الأساسية) */}
-      <section id="features" className="py-24 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 5. Integrated System Section (الميزات الأساسية - تم تصغير الكاردات وحجم الحشو هنا) */}
+      <section id="features" className="py-16 bg-white relative overflow-hidden">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-20 space-y-3">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
             <span className="text-amber-600 font-bold text-xs uppercase tracking-widest">كل ما تحتاجه، في مكان واحد</span>
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
               ميزات محاسبية ذكية مصممة لتساعدك على تطوير أعمالك
@@ -593,36 +602,36 @@ export default function Home() {
             <div className="w-12 h-1 bg-amber-500 mx-auto rounded-full" />
           </div>
 
-          <div className="space-y-16 lg:space-y-20">
+          <div className="space-y-8 lg:space-y-10">
             {integratedFeatures.map((feature) => {
               const isLeftImage = feature.imagePosition === 'left';
               
               return (
                 <motion.div
                   key={feature.id}
-                  initial={{ opacity: 0, y: 40 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center border border-gray-200 p-8 sm:p-12 rounded-3xl bg-gray-50/50"
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm"
                 >
-                  <div className={`lg:col-span-6 space-y-6 text-right ${isLeftImage ? 'lg:order-1' : 'lg:order-2'}`}>
+                  <div className={`lg:col-span-6 space-y-4 text-right ${isLeftImage ? 'lg:order-1' : 'lg:order-2'}`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                      <div className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                         {feature.badgeIcon}
                       </div>
-                      <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
                         {feature.title}
                       </h3>
                     </div>
-                    <div className="w-10 h-0.5 bg-amber-500 rounded-full" />
-                    <p className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed">
+                    <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
+                    <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
                       {feature.description}
                     </p>
-                    <div className="space-y-3 pt-2">
+                    <div className="space-y-2 pt-1">
                       {feature.bullets.map((bullet, i) => (
-                        <div key={i} className="flex items-center gap-3 text-sm font-bold text-gray-800">
-                          <span className="w-5 h-5 rounded bg-gray-900 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
+                        <div key={i} className="flex items-center gap-2.5 text-xs font-bold text-gray-800">
+                          <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
                           <span>{bullet}</span>
                         </div>
                       ))}
@@ -630,8 +639,8 @@ export default function Home() {
                   </div>
 
                   <div className={`lg:col-span-6 ${isLeftImage ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <div className="relative rounded-2xl p-3 bg-white border border-gray-200 shadow-sm overflow-hidden">
-                      <div className="relative rounded-xl overflow-hidden shadow-inner bg-white aspect-[4/3] flex items-center justify-center border border-gray-100">
+                    <div className="relative rounded-xl p-2 bg-white border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
                         <img src={feature.image} alt={feature.imageAlt} className="w-full h-full object-cover" loading="lazy" />
                       </div>
                     </div>
@@ -648,7 +657,7 @@ export default function Home() {
       <section id="migration" className="py-20 bg-gradient-to-b from-slate-50 via-amber-50/40 to-white relative overflow-hidden border-y border-amber-100/60">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-amber-300/20 via-orange-200/20 to-amber-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             
             <motion.div 
@@ -685,7 +694,7 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-white/80 backdrop-blur-md border border-amber-200/70 p-6 sm:p-8 rounded-3xl shadow-xl my-8 relative"
+              className="bg-white/85 backdrop-blur-md border border-amber-200/80 p-6 sm:p-8 rounded-2xl shadow-xl my-8 relative"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 
@@ -715,7 +724,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-2xl shadow-lg border border-amber-400/50 text-center space-y-2">
+                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg border border-amber-400/50 text-center space-y-2">
                   <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-xl font-black">
                     M
                   </div>
@@ -729,7 +738,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               <motion.div 
                 whileHover={{ y: -4 }}
-                className="bg-white border border-gray-200/80 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
+                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
               >
                 <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg">
                   🛡️
@@ -740,7 +749,7 @@ export default function Home() {
 
               <motion.div 
                 whileHover={{ y: -4 }}
-                className="bg-white border border-gray-200/80 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
+                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
               >
                 <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-lg">
                   ⚡
@@ -751,7 +760,7 @@ export default function Home() {
 
               <motion.div 
                 whileHover={{ y: -4 }}
-                className="bg-white border border-gray-200/80 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
+                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2"
               >
                 <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-lg">
                   🚫
@@ -780,7 +789,7 @@ export default function Home() {
         <div className="absolute top-1/2 right-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-0 left-10 w-80 h-80 bg-slate-200/40 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             <motion.div 
@@ -976,7 +985,7 @@ export default function Home() {
 
       {/* 8. SECTION: من يستفيد من مزيد؟ (Personas) */}
       <section className="py-24 bg-gray-50 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-16">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 text-center space-y-16">
           <div className="max-w-3xl mx-auto space-y-3">
             <h2 className="text-3xl font-black text-gray-900">من يستفيد من مزيد؟</h2>
             <p className="text-gray-600 text-sm sm:text-base">حلول مخصصة لاحتياجاتك المختلفة</p>
@@ -984,7 +993,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {personas.map((p, idx) => (
-              <motion.div key={idx} whileHover={{ y: -5 }} className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm space-y-4 text-right">
+              <motion.div key={idx} whileHover={{ y: -5 }} className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-4 text-right">
                 <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full">{p.tag}</span>
                 <h3 className="text-xl font-bold text-gray-900">{p.title}</h3>
                 <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{p.desc}</p>
@@ -995,17 +1004,40 @@ export default function Home() {
       </section>
 
       {/* 9. SECTION: مستشارو مزيد (Advisory) */}
-      <section className="py-20 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
-            <div className="space-y-4 max-w-xl text-right">
-              <span className="bg-amber-500 text-gray-900 text-xs font-black px-3 py-1 rounded-full">خبراء معتمدون</span>
-              <h2 className="text-2xl sm:text-3xl font-black">مستشارو مزيد: احصل على خبراء ماليين، وليس مجرد برامج</h2>
-              <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">تجنّب الغرامات واضمن امتثالاً كاملًا مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب.</p>
+      <section id="advisory" className="py-20 bg-white border-t border-gray-200">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="space-y-4 max-w-xl text-right relative z-10">
+              <span className="bg-amber-500 text-gray-900 text-xs font-black px-3.5 py-1.5 rounded-full inline-block shadow-sm">
+                مستشارو مزيد
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+                احصل على خبراء ماليين، وليس مجرد برامج
+              </h2>
+              <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-medium">
+                تجنّب الغرامات واضمن امتثال كامل مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب
+              </p>
+              
+              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-amber-400">
+                <span className="flex items-center gap-1.5">✓ مستشارون معتمدون من FTA</span>
+                <span className="flex items-center gap-1.5">✓ استجابة فورية</span>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#pricing" className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold px-6 py-3.5 rounded-xl text-center text-sm transition-colors">
+
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full lg:w-auto">
+              <a 
+                href="#pricing" 
+                className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold px-8 py-4 rounded-2xl text-center text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
+              >
                 احجز استشارة مجانية
+              </a>
+              <a 
+                href="#faq" 
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-6 py-4 rounded-2xl text-center text-sm transition-all backdrop-blur-sm"
+              >
+                تعرف على المزيد
               </a>
             </div>
           </div>
@@ -1013,10 +1045,10 @@ export default function Home() {
       </section>
 
       {/* 10. SECTION: آلاف الشركات تثق في مزيد (Trust & Stats) */}
-      <section className="py-16 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 border-y border-amber-100/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full py-20 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 border-y border-amber-100/60">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
-          <div className="text-center space-y-3 max-w-2xl mx-auto mb-12">
+          <div className="text-center space-y-3 max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
               آلاف الشركات تثق في <span className="text-amber-600">مزيد</span>
             </h2>
@@ -1025,10 +1057,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
             <motion.div 
               whileHover={{ y: -5 }}
-              className="bg-white p-7 rounded-3xl border border-gray-200/80 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2"
+              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2"
             >
               <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
                 +4,000
@@ -1038,7 +1070,7 @@ export default function Home() {
 
             <motion.div 
               whileHover={{ y: -5 }}
-              className="bg-white p-7 rounded-3xl border border-gray-200/80 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2"
+              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2"
             >
               <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
                 +2 مليون
@@ -1048,7 +1080,7 @@ export default function Home() {
 
             <motion.div 
               whileHover={{ y: -5 }}
-              className="bg-white p-7 rounded-3xl border border-gray-200/80 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2"
+              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 sm:col-span-2 lg:col-span-1"
             >
               <div className="flex items-center justify-center gap-1.5 dir-ltr">
                 <span className="text-3xl sm:text-4xl font-black text-amber-600">4.7</span>
@@ -1058,8 +1090,8 @@ export default function Home() {
             </motion.div>
           </div>
 
-          <div className="pt-4 border-t border-gray-100">
-            <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-6">
+          <div className="pt-8 border-t border-gray-100">
+            <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-8">
               شعار بعض الشركات والمؤسسات التي نخدمها
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 opacity-75 hover:opacity-100 transition-opacity">
@@ -1088,7 +1120,7 @@ export default function Home() {
       <section id="tax-features" className="py-24 bg-white relative overflow-hidden">
         <div className="absolute top-1/2 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
             <motion.div 
@@ -1123,9 +1155,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <motion.div 
               whileHover={{ y: -6 }}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
+              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 🧮
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
@@ -1138,9 +1170,9 @@ export default function Home() {
 
             <motion.div 
               whileHover={{ y: -6 }}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
+              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 font-bold flex items-center justify-center text-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 font-bold flex items-center justify-center text-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
                 📈
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-teal-700 transition-colors">
@@ -1153,9 +1185,9 @@ export default function Home() {
 
             <motion.div 
               whileHover={{ y: -6 }}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
+              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-2xl group-hover:bg-amber-500 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-2xl group-hover:bg-amber-500 group-hover:text-white transition-colors">
                 📄
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
@@ -1168,9 +1200,9 @@ export default function Home() {
 
             <motion.div 
               whileHover={{ y: -6 }}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
+              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 🔔
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
@@ -1187,14 +1219,14 @@ export default function Home() {
 
       {/* 12. Social Proof & Partners */}
       <section className="py-20 bg-gray-50 border-t border-gray-200 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center mb-16 space-y-3">
             <h2 className="text-3xl font-black text-gray-900">شركاء النجاح</h2>
             <p className="text-sm font-bold text-gray-500">قصص حقيقية ونتائج ملموسة</p>
           </div>
 
-          <div className="max-w-3xl mx-auto bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mb-16 text-center space-y-4">
+          <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4">
             <p className="text-base sm:text-lg italic text-gray-700 font-medium leading-relaxed">
               &quot;تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة سريعة وبسيطة تساعدنا على توفير الوقت والجهد.&quot;
             </p>
@@ -1214,7 +1246,7 @@ export default function Home() {
               transition={{ repeat: Infinity, ease: "linear", duration: 25 }}
             >
               {tickerItems.map((partner, idx) => (
-                <div key={idx} className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm min-w-[170px] text-center">
+                <div key={idx} className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm min-w-[170px] text-center">
                   <div className="w-16 h-16 rounded-full overflow-hidden mb-3 border border-gray-200 shadow-sm">
                     <img src={partner.image} alt={partner.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
@@ -1230,24 +1262,24 @@ export default function Home() {
 
       {/* 13. SECTION: تسعير واضح (Pricing) */}
       <section id="pricing" className="py-24 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-              تسعير واضح قيمة حقيقية.
+              تسعير واضح قيمة حقيقية
             </h2>
             <p className="text-gray-600 text-sm sm:text-base">باقات تناسب كل مرحلة من نمو مشروعك</p>
             
-            <div className="inline-flex items-center bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+            <div className="inline-flex items-center bg-gray-100 p-1.5 rounded-xl border border-gray-200">
               <button 
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 شهري
               </button>
               <button 
                 onClick={() => setBillingCycle('annual')}
-                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${billingCycle === 'annual' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'annual' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 سنوي <span className="text-amber-400 mr-1">خصم 50%</span>
               </button>
@@ -1260,7 +1292,7 @@ export default function Home() {
             {pricingPlans.map((plan, idx) => (
               <div 
                 key={idx} 
-                className={`bg-white rounded-3xl p-8 border flex flex-col justify-between transition-all relative ${plan.popular ? 'border-amber-500 shadow-xl ring-2 ring-amber-500/20' : 'border-gray-200 shadow-sm'}`}
+                className={`bg-white rounded-2xl p-8 border flex flex-col justify-between transition-all relative ${plan.popular ? 'border-amber-500 shadow-xl ring-2 ring-amber-500/20' : 'border-gray-200 shadow-sm'}`}
               >
                 {plan.popular && (
                   <span className="absolute -top-3.5 right-6 bg-amber-500 text-gray-900 text-[10px] font-black px-3 py-1 rounded-full shadow-sm">
@@ -1315,7 +1347,7 @@ export default function Home() {
 
       {/* 14. SECTION: الأسئلة الشائعة (FAQ Accordion) */}
       <section id="faq" className="py-24 bg-gray-50 border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900">الأسئلة الشائعة</h2>
             <p className="text-gray-600 text-sm sm:text-base">إجابات سريعة لأكثر الاستفسارات شيوعًا</p>
@@ -1325,7 +1357,7 @@ export default function Home() {
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                <div key={idx} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                   <button 
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
                     className="w-full p-6 text-right flex justify-between items-center font-bold text-gray-900 text-sm sm:text-base hover:text-amber-600 transition-colors"
@@ -1357,336 +1389,254 @@ export default function Home() {
       </section>
 
       {/* 15. SECTION: النشرة الإخبارية والفوتر (Newsletter & Full Footer) */}
-     {/* 15. SECTION: النشرة الإخبارية والفوتر */}
-<footer
-  dir="rtl"
-  className="border-t border-white/10 bg-slate-950 text-slate-400"
->
-  <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <footer
+        dir="rtl"
+        className="border-t border-white/10 bg-slate-950 text-slate-400"
+      >
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-16">
 
-    {/* ================= Newsletter ================= */}
-    <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-l from-amber-500 via-amber-600 to-orange-600 p-6 shadow-2xl sm:p-8 lg:p-10">
+          {/* ================= Newsletter ================= */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-amber-500 via-amber-600 to-orange-600 p-6 shadow-2xl sm:p-8 lg:p-10">
 
-      {/* Decorative shapes */}
-      <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-orange-300/10 blur-3xl" />
+            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-orange-300/10 blur-3xl" />
 
-      <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_520px]">
+            <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_520px]">
 
-        {/* Newsletter text */}
-        <div className="max-w-2xl text-right">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
-            <span className="ml-2">✉</span>
-            النشرة الإخبارية
-          </span>
+              <div className="max-w-2xl text-right">
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
+                  <span className="ml-2">✉</span>
+                  النشرة الإخبارية
+                </span>
 
-          <h3 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
-            اشترك في النشرة الإخبارية
-          </h3>
+                <h3 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
+                  اشترك في النشرة الإخبارية
+                </h3>
 
-          <p className="mt-3 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">
-            واكب آخر مستجدات عالم الأعمال والمال، مع أفكار عملية تساعدك على اتخاذ
-            قرارات مدروسة بثقة.
-          </p>
-        </div>
-
-        {/* Newsletter form */}
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="w-full rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur-md"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              type="email"
-              placeholder="أدخل بريدك الإلكتروني"
-              className="min-w-0 flex-1 rounded-xl border-0 bg-white px-4 py-3.5 text-right text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none ring-0 transition focus:ring-2 focus:ring-white/60"
-            />
-
-            <button
-              type="submit"
-              className="shrink-0 rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-black active:scale-[0.98]"
-            >
-              اشترك الآن
-            </button>
-          </div>
-        </form>
-
-      </div>
-    </div>
-
-    {/* ================= Footer Main ================= */}
-    <div className="mt-16 border-b border-white/10 pb-12">
-
-      <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
-
-        {/* Brand */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20">
-              BE
-            </div>
-
-            <div>
-              <div className="text-xl font-black tracking-wide text-white">
-                MAZEED
+                <p className="mt-3 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">
+                  واكب آخر مستجدات عالم الأعمال والمال، مع أفكار عملية تساعدك على اتخاذ
+                  قرارات مدروسة بثقة.
+                </p>
               </div>
-              <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-400">
-                ACCOUNTING
-              </div>
+
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-md"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="email"
+                    placeholder="أدخل بريدك الإلكتروني"
+                    className="min-w-0 flex-1 rounded-lg border-0 bg-white px-4 py-3.5 text-right text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none ring-0 transition focus:ring-2 focus:ring-white/60"
+                  />
+
+                  <button
+                    type="submit"
+                    className="shrink-0 rounded-lg bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-black active:scale-[0.98]"
+                  >
+                    اشترك الآن
+                  </button>
+                </div>
+              </form>
+
             </div>
           </div>
 
-          <p className="mt-6 max-w-sm text-sm leading-7 text-slate-400">
-            برنامج المحاسبة والامتثال الضريبي الأذكى المخصص للأعمال والشركات في
-            دولة الإمارات العربية المتحدة.
-          </p>
+          {/* ================= Footer Main ================= */}
+          <div className="mt-16 border-b border-white/10 pb-12">
 
-          {/* Social links */}
-          <div className="mt-6 flex flex-wrap gap-2.5">
+            <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
 
-            <a
-              href="#"
-              aria-label="LinkedIn"
-              className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950"
-            >
-              LinkedIn
-            </a>
+              <div className="min-w-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20">
+                    BE
+                  </div>
 
-            <a
-              href="#"
-              aria-label="Facebook"
-              className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950"
-            >
-              Facebook
-            </a>
+                  <div>
+                    <div className="text-xl font-black tracking-wide text-white">
+                      MAZEED
+                    </div>
+                    <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-400">
+                      ACCOUNTING
+                    </div>
+                  </div>
+                </div>
 
-            <a
-              href="#"
-              aria-label="YouTube"
-              className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950"
-            >
-              YouTube
-            </a>
+                <p className="mt-6 max-w-sm text-sm leading-7 text-slate-400">
+                  برنامج المحاسبة والامتثال الضريبي الأذكى المخصص للأعمال والشركات في
+                  دولة الإمارات العربية المتحدة.
+                </p>
 
-            <a
-              href="#"
-              aria-label="X"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950"
-            >
-              X
-            </a>
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">LinkedIn</a>
+                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">Facebook</a>
+                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">YouTube</a>
+                  <a href="#" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">X</a>
+                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">Instagram</a>
+                </div>
+              </div>
 
-            <a
-              href="#"
-              aria-label="Instagram"
-              className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950"
-            >
-              Instagram
-            </a>
+              <div>
+                <h4 className="text-sm font-extrabold text-white">الميزات</h4>
+                <ul className="mt-5 space-y-3.5 text-sm">
+                  <li><a href="#" className="transition-colors hover:text-amber-400">الفواتير</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">الضرائب</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">المخزون</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">المحاسبة</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">التقارير</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">التسوية</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">مسك الدفاتر</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">المصاريف</a></li>
+                </ul>
+              </div>
 
+              <div>
+                <h4 className="text-sm font-extrabold text-white">الخدمات</h4>
+                <ul className="mt-5 space-y-3.5 text-sm">
+                  <li><a href="#advisory" className="leading-6 transition-colors hover:text-amber-400">مستشارو مزيد</a></li>
+                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400">خدمات الضرائب</a></li>
+                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400">خدمات المدير المالي</a></li>
+                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400">خدمات المحاسبة ومسك الدفاتر</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-extrabold text-white">المساعدة والدعم</h4>
+                <ul className="mt-5 space-y-3.5 text-sm">
+                  <li><a href="#" className="transition-colors hover:text-amber-400">مركز المساعدة</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">أكاديمية مزيد</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">المدونات</a></li>
+                  <li><a href="#faq" className="transition-colors hover:text-amber-400">الأسئلة الشائعة</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-extrabold text-white">الشركة</h4>
+                <ul className="mt-5 space-y-3.5 text-sm">
+                  <li><a href="#" className="transition-colors hover:text-amber-400">من نحن</a></li>
+                  <li><a href="#pricing" className="transition-colors hover:text-amber-400">الأسعار</a></li>
+                  <li><a href="#" className="transition-colors hover:text-amber-400">اتصل بنا</a></li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5 pt-7 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-center text-slate-500 sm:text-right">© mazeed 2025 جميع الحقوق محفوظة</p>
+            <div className="flex items-center justify-center gap-6 text-slate-500">
+              <a href="#" className="transition-colors hover:text-amber-400">شروط الخدمة</a>
+              <a href="#" className="transition-colors hover:text-amber-400">سياسة الخصوصية</a>
+            </div>
           </div>
         </div>
+      </footer>
 
-        {/* Features */}
-        <div>
-          <h4 className="text-sm font-extrabold text-white">
-            الميزات
-          </h4>
+      {/* ================= Floating Real Live Chat with Person Profile ================= */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* نافذة الشات المنسدلة */}
+        <AnimatePresence>
+          {chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="absolute bottom-20 right-0 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-50 text-right"
+            >
+              {/* رأس نافذة المحادثة */}
+              <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img 
+                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                      alt="أحمد - مستشار مزيد" 
+                      className="w-10 h-10 rounded-full object-cover border-2 border-amber-500"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm">أحمد المنهالي</h4>
+                    <p className="text-[10px] text-amber-400">مستشار ضريبي ومحاسبي معتمد</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setChatOpen(false)}
+                  className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
 
-          <ul className="mt-5 space-y-3.5 text-sm">
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                الفواتير
-              </a>
-            </li>
+              {/* جسم المحادثة */}
+              <div className="p-4 h-72 overflow-y-auto bg-slate-50 space-y-3 flex flex-col">
+                <div className="text-center">
+                  <span className="text-[10px] bg-gray-200 text-gray-600 px-2.5 py-1 rounded-full font-medium">اليوم</span>
+                </div>
+                {chatLog.map((msg, i) => (
+                  <div key={i} className={`flex gap-2.5 items-end ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                    {msg.sender === 'support' && (
+                      <img 
+                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                        alt="أحمد" 
+                        className="w-7 h-7 rounded-full object-cover shrink-0"
+                      />
+                    )}
+                    <div className={`p-3 rounded-2xl text-xs max-w-[75%] leading-relaxed ${msg.sender === 'user' ? 'bg-amber-500 text-gray-900 font-medium rounded-bl-none' : 'bg-white text-gray-800 border border-gray-200 shadow-sm rounded-br-none'}`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                الضرائب
-              </a>
-            </li>
+              {/* صندوق إدخال الرسالة */}
+              <div className="p-3 bg-white border-t border-gray-200 flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && chatMessage.trim()) {
+                      setChatLog([...chatLog, { sender: 'user', text: chatMessage, time: 'الآن' }]);
+                      setChatMessage('');
+                      setTimeout(() => {
+                        setChatLog(prev => [...prev, { sender: 'support', text: 'أهلاً بك! لقد استلمت استفسارك وسيقوم فريق مستشاري مزيد بالرد عليك فوراً لضمان امتثال عملك.', time: 'الآن' }]);
+                      }, 1000);
+                    }
+                  }}
+                  placeholder="اكتب استفسارك المالي أو الضريبي هنا..."
+                  className="flex-1 bg-gray-100 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-amber-500 transition-colors"
+                />
+                <button 
+                  onClick={() => {
+                    if (chatMessage.trim()) {
+                      setChatLog([...chatLog, { sender: 'user', text: chatMessage, time: 'الآن' }]);
+                      setChatMessage('');
+                      setTimeout(() => {
+                        setChatLog(prev => [...prev, { sender: 'support', text: 'أهلاً بك! لقد استلمت استفسارك وسيقوم فريق مستشاري مزيد بالرد عليك فوراً لضمان امتثال عملك.', time: 'الآن' }]);
+                      }, 1000);
+                    }
+                  }}
+                  className="bg-amber-500 hover:bg-amber-600 text-gray-900 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                >
+                  إرسال
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                المخزون
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                المحاسبة
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                التقارير
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                التسوية
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                مسك الدفاتر
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                المصاريف
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Services */}
-        <div>
-          <h4 className="text-sm font-extrabold text-white">
-            الخدمات
-          </h4>
-
-          <ul className="mt-5 space-y-3.5 text-sm">
-            <li>
-              <a href="#" className="leading-6 transition-colors hover:text-amber-400">
-                مستشارو مزيد
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="leading-6 transition-colors hover:text-amber-400">
-                خدمات الضرائب
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="leading-6 transition-colors hover:text-amber-400">
-                خدمات المدير المالي
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="leading-6 transition-colors hover:text-amber-400">
-                خدمات المحاسبة ومسك الدفاتر
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Support */}
-        <div>
-          <h4 className="text-sm font-extrabold text-white">
-            المساعدة والدعم
-          </h4>
-
-          <ul className="mt-5 space-y-3.5 text-sm">
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                مركز المساعدة
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                أكاديمية مزيد
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                المدونات
-              </a>
-            </li>
-
-            <li>
-              <a href="#faq" className="transition-colors hover:text-amber-400">
-                الأسئلة الشائعة
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Company */}
-        <div>
-          <h4 className="text-sm font-extrabold text-white">
-            الشركة
-          </h4>
-
-          <ul className="mt-5 space-y-3.5 text-sm">
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                من نحن
-              </a>
-            </li>
-
-            <li>
-              <a href="#pricing" className="transition-colors hover:text-amber-400">
-                الأسعار
-              </a>
-            </li>
-
-            <li>
-              <a href="#" className="transition-colors hover:text-amber-400">
-                اتصل بنا
-              </a>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-    </div>
-
-    {/* ================= Footer Bottom ================= */}
-    <div className="flex flex-col gap-5 pt-7 text-sm sm:flex-row sm:items-center sm:justify-between">
-
-      <p className="text-center text-slate-500 sm:text-right">
-        © mazeed 2025 جميع الحقوق محفوظة
-      </p>
-
-      <div className="flex items-center justify-center gap-6 text-slate-500">
-        <a
-          href="#"
-          className="transition-colors hover:text-amber-400"
+        {/* زر فتح الشات العائم */}
+        <button 
+          onClick={() => setChatOpen(!chatOpen)}
+          className="bg-slate-900 hover:bg-black text-white p-4 rounded-full shadow-2xl border-2 border-amber-500 flex items-center justify-center transition-transform hover:scale-110 relative group"
         >
-          شروط الخدمة
-        </a>
-
-        <a
-          href="#"
-          className="transition-colors hover:text-amber-400"
-        >
-          سياسة الخصوصية
-        </a>
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
+          <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </button>
       </div>
-
-    </div>
-  </div>
-</footer>
-
-{/* ================= Floating Live Chat ================= */}
-<div className="fixed bottom-6 right-6 z-50">
-  <button
-    aria-label="Live chat"
-    className="group relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-white shadow-2xl shadow-black/30 transition-all hover:scale-105 hover:bg-slate-800 active:scale-95"
-  >
-    <svg
-      className="h-6 w-6 transition-transform group-hover:scale-110"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-    </svg>
-
-    <span className="absolute right-1 top-1 flex h-3.5 w-3.5">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
-      <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-amber-500" />
-    </span>
-  </button>
-</div>
 
     </div>
   );
