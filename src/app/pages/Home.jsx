@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 // مكون لتعديل النص عند وضع المؤشر والضغط المطول (Long Press)
 function EditableText({ initialText, className, tag = 'span' }) {
@@ -71,8 +72,8 @@ export default function Home() {
   const containerRef = useRef(null);
   const [showBanner, setShowBanner] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [lang, setLang] = useState('ar');
   
+  const { locale, toggleLanguage } = useLanguage();
   // حالة نافذة الشات الحقيقي
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
@@ -336,11 +337,11 @@ export default function Home() {
 
           <div className="hidden md:flex items-center gap-4">
             <button 
-              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-              className="text-xs font-semibold text-gray-600 hover:text-gray-900 p-2 border border-gray-200 rounded-lg transition-colors flex items-center gap-1"
-            >
-              🌐 {lang.toUpperCase()}
-            </button>
+            onClick={toggleLanguage}
+  className="text-xs font-semibold text-gray-600 hover:text-gray-900 p-2 border border-gray-200 rounded-lg transition-colors flex items-center gap-1"
+>
+            🌐 {locale.toUpperCase()}
+</button>
 
             <Link 
               to="/login" 
