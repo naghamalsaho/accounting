@@ -5,10 +5,190 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../i18n/LanguageContext';
 
-// مكون لتعديل النص وحفظه في sessionStorage
+function ResizableWrapper({ children, id, defaultWidth = 'auto', defaultHeight = 'auto', className = '' }) {
+  const storageKey = `size_${id}`;
+  const [size, setSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          sessionStorage.removeItem(storageKey);
+        }
+      }
+    }
+    return { width: defaultWidth, height: defaultHeight };
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const elementRef = useRef(null);
+
+  const handlePointerDown = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.nativeEvent?.stopImmediatePropagation?.();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const element = elementRef.current;
+    if (!element) return;
+    const handle = event.currentTarget;
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startWidth = element.offsetWidth;
+    const startHeight = element.offsetHeight;
+    let latestSize = size;
+    setIsResizing(true);
+    document.body.style.userSelect = 'none';
+
+    const handlePointerMove = (moveEvent) => {
+      const nextSize = {
+        width: `${Math.max(80, startWidth + moveEvent.clientX - startX)}px`,
+        height: `${Math.max(32, startHeight + moveEvent.clientY - startY)}px`
+      };
+      latestSize = nextSize;
+      setSize(nextSize);
+    };
+
+    const handlePointerUp = () => {
+      setIsResizing(false);
+      document.body.style.userSelect = '';
+      handle.releasePointerCapture?.(event.pointerId);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(storageKey, JSON.stringify(latestSize));
+      }
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp, { once: true });
+  };
+
+  return (
+    <div
+      ref={elementRef}
+      style={{ width: size.width, height: size.height }}
+      className={`relative inline-block group/resizable ${isResizing ? 'z-[2147483647]' : ''} ${className}`}
+    >
+      {children}
+      <button
+        type="button"
+        onPointerDown={handlePointerDown}
+        onPointerUp={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+        className="absolute -bottom-1.5 -right-1.5 z-30 flex h-4 w-4 cursor-se-resize items-center justify-center rounded-full border-2 border-white bg-amber-500 opacity-0 shadow-md transition-opacity group-hover/resizable:opacity-100"
+        title="اسحب لتغيير الحجم"
+        aria-label="تغيير حجم العنصر"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-white" />
+      </button>
+    </div>
+  );
+}
+
+// 1. منتقي الألوان التفاعلي الناعم عند النقر (Contextual Smooth Color Picker)
+function ColorPopover({ isOpen, onClose, textColor, setTextColor, bgColor, setBgColor, storagePrefix }) {
+  if (!isOpen) return null;
+
+  const presetColors = [
+    '#111827', '#f59e0b', '#059669', '#2563eb', '#7c3aed', '#dc2626', '#ffffff', '#4b5563'
+  ];
+
+  const handleTextColorChange = (color) => {
+    setTextColor(color);
+    if (typeof window !== 'undefined' && storagePrefix) {
+      sessionStorage.setItem(`${storagePrefix}_text_color`, color);
+    }
+  };
+
+  const handleBgColorChange = (color) => {
+    setBgColor(color);
+    if (typeof window !== 'undefined' && storagePrefix) {
+      sessionStorage.setItem(`${storagePrefix}_bg_color`, color);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.88, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.88, y: 8 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        className="absolute z-[2147483647] bottom-full mb-2 right-0 max-h-[70vh] w-64 max-w-[calc(100vw-1rem)] overflow-y-auto bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl shadow-2xl p-3.5 text-xs font-sans text-gray-900 dir-rtl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center pb-2 border-b border-gray-100 mb-2.5">
+          <span className="font-extrabold text-[11px] text-gray-800 flex items-center gap-1.5">
+            <span>🎨</span> تخصيص اللون الناعم
+          </span>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-gray-800 font-bold text-xs p-1 rounded-md hover:bg-gray-100 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <span className="block text-[10px] font-bold text-gray-500 mb-1.5">لون النص:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {presetColors.map((c) => (
+                <button
+                  key={`text-${c}`}
+                  onClick={() => handleTextColorChange(c)}
+                  className="w-5 h-5 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-125 focus:ring-2 focus:ring-amber-400"
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              ))}
+              <input
+                type="color"
+                value={textColor || '#111827'}
+                onChange={(e) => handleTextColorChange(e.target.value)}
+                className="w-6 h-6 rounded-lg border cursor-pointer p-0 bg-transparent overflow-hidden"
+                title="مخصص"
+              />
+            </div>
+          </div>
+
+          <div>
+            <span className="block text-[10px] font-bold text-gray-500 mb-1.5">لون الخلفية:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => handleBgColorChange('transparent')}
+                className="text-[9px] px-2 py-0.5 rounded-md border border-gray-200 bg-gray-50 font-bold hover:bg-gray-100 transition-colors"
+              >
+                شفاف
+              </button>
+              {presetColors.map((c) => (
+                <button
+                  key={`bg-${c}`}
+                  onClick={() => handleBgColorChange(c)}
+                  className="w-5 h-5 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-125 focus:ring-2 focus:ring-amber-400"
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              ))}
+              <input
+                type="color"
+                value={bgColor || '#ffffff'}
+                onChange={(e) => handleBgColorChange(e.target.value)}
+                className="w-6 h-6 rounded-lg border cursor-pointer p-0 bg-transparent overflow-hidden"
+                title="مخصص"
+              />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// 2. مكون تعديل النص الذكي مع زر ألوان ناعم
 function EditableText({ id, initialText, className, tag = 'span' }) {
   const storageKey = `text_${id || initialText}`;
-  
   const [text, setText] = useState(() => {
     if (typeof window !== 'undefined') {
       return sessionStorage.getItem(storageKey) || initialText;
@@ -16,7 +196,22 @@ function EditableText({ id, initialText, className, tag = 'span' }) {
     return initialText;
   });
 
+  const [textColor, setTextColor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(`${storageKey}_text_color`) || '';
+    }
+    return '';
+  });
+
+  const [bgColor, setBgColor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(`${storageKey}_bg_color`) || '';
+    }
+    return '';
+  });
+
   const [isEditing, setIsEditing] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [tempText, setTempText] = useState(text);
   const timerRef = useRef(null);
 
@@ -24,7 +219,7 @@ function EditableText({ id, initialText, className, tag = 'span' }) {
     timerRef.current = setTimeout(() => {
       setIsEditing(true);
       setTempText(text);
-    }, 600);
+    }, 500);
   };
 
   const handleMouseUp = () => {
@@ -40,11 +235,8 @@ function EditableText({ id, initialText, className, tag = 'span' }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setIsEditing(false);
-    }
+    if (e.key === 'Enter') handleSave();
+    else if (e.key === 'Escape') setIsEditing(false);
   };
 
   const Tag = tag;
@@ -65,24 +257,53 @@ function EditableText({ id, initialText, className, tag = 'span' }) {
   }
 
   return (
-    <Tag
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleMouseDown}
-      onTouchEnd={handleMouseUp}
-      title="اضغط مطولاً لتعديل النص"
-      className={`cursor-pointer select-none transition-all hover:bg-amber-100/60 hover:ring-1 hover:ring-amber-400 rounded px-0.5 ${className || ''}`}
-    >
-      {text}
-    </Tag>
+    <ResizableWrapper id={`text_${id || initialText}`}>
+    <div className="relative inline-block group/editable">
+      <Tag
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleMouseDown}
+        onTouchEnd={handleMouseUp}
+        title="انقر مطولاً لتعديل النص • انقر أيقونة الألوان للتخصيص"
+        style={{
+          color: textColor || undefined,
+          backgroundColor: bgColor !== 'transparent' ? bgColor : undefined,
+        }}
+        className={`cursor-pointer select-none transition-all rounded px-1 py-0.5 group-hover/editable:ring-1 group-hover/editable:ring-amber-400/80 ${className || ''}`}
+      >
+        {text}
+      </Tag>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowColorPicker(!showColorPicker);
+        }}
+        className="opacity-0 group-hover/editable:opacity-100 transition-opacity absolute -top-2.5 -left-2.5 bg-white border border-gray-200 text-gray-700 hover:text-amber-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md z-30"
+        title="تغيير الألوان"
+      >
+        🎨
+      </button>
+
+      <ColorPopover
+        isOpen={showColorPicker}
+        onClose={() => setShowColorPicker(false)}
+        textColor={textColor}
+        setTextColor={setTextColor}
+        bgColor={bgColor}
+        setBgColor={setBgColor}
+        storagePrefix={storageKey}
+      />
+    </div>
+    </ResizableWrapper>
   );
 }
 
-// مكون لتعديل الصور وتحويلها إلى Base64 لحفظها في sessionStorage
+// 3. مكون تعديل الصور
 function EditableImage({ id, initialSrc, alt, className = '', imgClassName = '' }) {
   const storageKey = `img_${id || alt || initialSrc}`;
-  
   const [src, setSrc] = useState(() => {
     if (typeof window !== 'undefined') {
       return sessionStorage.getItem(storageKey) || initialSrc;
@@ -113,6 +334,7 @@ function EditableImage({ id, initialSrc, alt, className = '', imgClassName = '' 
   };
 
   return (
+    <ResizableWrapper id={`image_${id || alt || initialSrc}`} defaultWidth="100%">
     <div 
       className={`relative group/img cursor-pointer overflow-hidden ${className}`} 
       onClick={handleClick}
@@ -131,6 +353,141 @@ function EditableImage({ id, initialSrc, alt, className = '', imgClassName = '' 
           📷 تغيير الصورة
         </span>
       </div>
+    </div>
+    </ResizableWrapper>
+  );
+}
+
+// 4. زر خدمة العملاء العائم والأنيق (CustomerSupportButton)
+function CustomerSupportButton() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
+
+  return (
+    <div className="fixed bottom-6 left-6 z-50 font-sans dir-rtl">
+      <AnimatePresence>
+        {showNotification && !isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            className="absolute bottom-16 left-0 mb-2 w-64 bg-white border border-amber-200/90 shadow-2xl rounded-2xl p-3.5 text-xs text-gray-800 flex items-start gap-3 border-r-4 border-r-amber-500"
+          >
+            <div className="w-8 h-8 rounded-full bg-amber-500 text-gray-900 font-bold flex items-center justify-center shrink-0 shadow-sm">
+              🎧
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-[11px] text-gray-900">خدمة العملاء المباشرة</span>
+                <button 
+                  onClick={() => setShowNotification(false)}
+                  className="text-gray-400 hover:text-gray-700 text-[10px] font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-snug">
+                أهلاً بك! كيف يمكننا مساعدتك في اختيار الخطة المناسبة اليوم؟
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 20 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+            className="absolute bottom-16 left-0 mb-2 w-80 sm:w-88 bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden text-right"
+          >
+            <div className="bg-gradient-to-r from-gray-900 via-slate-900 to-gray-900 text-white p-4 flex items-center justify-between border-b border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-amber-500 text-gray-900 font-extrabold flex items-center justify-center text-sm shadow-md">
+                    مزيد
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-gray-900 rounded-full" />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs text-white">فريق دعم مزيد المحاسبي</h4>
+                  <p className="text-[10px] text-amber-400 font-medium">متصل الان • استجابة خلال دقائق</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-white font-bold text-sm p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3.5 bg-slate-50/60 max-h-80 overflow-y-auto text-xs">
+              <div className="bg-white border border-gray-200/80 p-3 rounded-2xl shadow-sm text-gray-700 leading-relaxed">
+                مرحباً بك في <span className="font-bold text-gray-900">مزيد</span>! يسعدنا تقديم الاستشارة المحاسبية وتسهيل عملية الامتثال الضريبي لنشاطك التجاري.
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <a
+                  href="https://wa.me/971000000000" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-between shadow-sm transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>💬</span> تواصل مباشر عبر واتساب
+                  </span>
+                  <span>←</span>
+                </a>
+
+                <a
+                  href="tel:+97100000000" 
+                  className="w-full py-2.5 px-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl flex items-center justify-between shadow-sm transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📞</span> طلب مكالمة هاتفية فورية
+                  </span>
+                  <span>←</span>
+                </a>
+
+                <button 
+                  onClick={() => alert('تم تسجيل طلبك، سيتم التواصل معك خلال دقائق!')}
+                  className="w-full py-2.5 px-4 bg-white border border-gray-300 hover:border-amber-500 text-gray-800 font-bold rounded-xl flex items-center justify-between transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📅</span> حجز جلسة استشارية مجانية
+                  </span>
+                  <span>←</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white border-t border-gray-100 text-center text-[10px] text-gray-400 font-semibold">
+              دعم معتمد على مدار 24/7 داخل دولة الإمارات 🇦🇪
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setShowNotification(false);
+        }}
+        className="relative bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-gray-900 p-3.5 rounded-full shadow-2xl flex items-center gap-2.5 border-2 border-white ring-2 ring-amber-500/20"
+        title="خدمة العملاء والاتصال المباشر"
+      >
+        <span className="text-xl">🎧</span>
+        <span className="text-xs font-black hidden md:inline pl-1 text-gray-900">خدمة العملاء</span>
+        <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+        </span>
+      </motion.button>
     </div>
   );
 }
@@ -194,7 +551,7 @@ export default function Home() {
     },
     {
       name: 'المتقدمة',
-      desc: 'حلول متتقدمة للشركات المتوسطة مع المخزون والتجارة الإلكترونية.',
+      desc: 'حلول متقدمة للشركات المتوسطة مع المخزون والتجارة الإلكترونية.',
       priceMonthly: 170,
       priceAnnual: 85,
       saveText: 'وفّر 1020 درهم في السنة الأولى',
@@ -291,11 +648,12 @@ export default function Home() {
     { id: 'partner_6', name: "ليلى الهاشمي", role: "Hub71 Innovation", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" }
   ];
 
-  const tickerItems = [...partnerLogos, ...partnerLogos];
-
   return (
     <div ref={containerRef} className="min-h-screen bg-white text-gray-900 font-sans selection:bg-amber-500 selection:text-white relative overflow-x-hidden" dir="rtl">
       
+      {/* إدراج زر خدمة العملاء العائم */}
+      <CustomerSupportButton />
+
       {/* 1. Top Announcement Bar */}
       {showBanner && (
         <div className="bg-gray-900 text-white text-xs md:text-sm py-2.5 px-3 md:px-6 shadow-sm relative z-50 border-b border-gray-800 transition-all">
@@ -434,20 +792,16 @@ export default function Home() {
               </motion.p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <motion.a 
-                  {...dragProps}
-                  href="/register" 
-                  className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
-                >
-                  <EditableText id="hero_cta_start" initialText="ابدأ تجربة مجانية" />
-                </motion.a>
-                <motion.a 
-                  {...dragProps}
-                  href="#pricing" 
-                  className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
-                >
-                  <EditableText id="hero_cta_price" initialText="اطلع على الأسعار" />
-                </motion.a>
+                <ResizableWrapper id="button_hero_start">
+                  <motion.a {...dragProps} href="/register" className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                    <EditableText id="hero_cta_start" initialText="ابدأ تجربة مجانية" />
+                  </motion.a>
+                </ResizableWrapper>
+                <ResizableWrapper id="button_hero_price">
+                  <motion.a {...dragProps} href="#pricing" className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                    <EditableText id="hero_cta_price" initialText="اطلع على الأسعار" />
+                  </motion.a>
+                </ResizableWrapper>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-xs font-semibold text-gray-500 pt-2">
@@ -457,7 +811,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Dashboard Visual */}
             <motion.div 
               {...dragProps}
               className="lg:col-span-6 relative flex justify-center items-center cursor-grab active:cursor-grabbing z-0"
@@ -472,7 +825,7 @@ export default function Home() {
                 <div className="w-full h-full rounded-xl overflow-hidden bg-slate-50 relative">
                   <EditableImage 
                     id="hero_dashboard_img"
-                    initialSrc="/path-to-your-image.png" 
+                    initialSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80" 
                     alt="لوحة تحكم مزيد المالية"
                     className="w-full h-full"
                     imgClassName="w-full h-full object-cover object-top"
@@ -518,7 +871,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            {/* Card 1 */}
+            <ResizableWrapper id="card_why_1" defaultWidth="100%">
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -541,8 +894,9 @@ export default function Home() {
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               </div>
             </motion.div>
+            </ResizableWrapper>
 
-            {/* Card 2 */}
+            <ResizableWrapper id="card_why_2" className="w-full">
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -565,8 +919,9 @@ export default function Home() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
               </div>
             </motion.div>
+            </ResizableWrapper>
 
-            {/* Card 3 */}
+            <ResizableWrapper id="card_why_3" className="w-full">
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -589,8 +944,9 @@ export default function Home() {
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
               </div>
             </motion.div>
+            </ResizableWrapper>
 
-            {/* Card 4 */}
+            <ResizableWrapper id="card_why_4" className="w-full">
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -613,6 +969,7 @@ export default function Home() {
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
               </div>
             </motion.div>
+            </ResizableWrapper>
 
           </div>
 
@@ -772,7 +1129,7 @@ export default function Home() {
                   🛡️
                 </div>
                 <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat1_title" initialText="استيراد بيانات آمن" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat1_desc" initialText="تشفير كامل لبياناتك المالية دون أي ريسك أو احتمالية لفقدان البيانات." /></p>
+                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat1_desc" initialText="تشفير كامل لبياناتك المالية دون أي مخاطرة أو احتمالية لفقدان البيانات." /></p>
               </motion.div>
 
               <motion.div 
@@ -842,6 +1199,7 @@ export default function Home() {
               </motion.p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <ResizableWrapper id="card_app_1" defaultWidth="100%">
                 <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xl mb-3">
                     🤖
@@ -849,7 +1207,9 @@ export default function Home() {
                   <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat1_title" initialText="مسح ذكي للفواتير (AI)" /></h4>
                   <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat1_desc" initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
                 </motion.div>
+                </ResizableWrapper>
 
+                <ResizableWrapper id="card_app_2" defaultWidth="100%">
                 <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xl mb-3">
                     ⚡
@@ -857,7 +1217,9 @@ export default function Home() {
                   <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat2_title" initialText="تنسيق وتحديث لحظي" /></h4>
                   <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat2_desc" initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
                 </motion.div>
+                </ResizableWrapper>
 
+                <ResizableWrapper id="card_app_3" defaultWidth="100%" className="sm:col-span-2">
                 <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all sm:col-span-2 cursor-grab active:cursor-grabbing">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xl shrink-0">
@@ -869,9 +1231,11 @@ export default function Home() {
                     </div>
                   </div>
                 </motion.div>
+                </ResizableWrapper>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
+                <ResizableWrapper id="button_app_store">
                 <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
                   <span className="text-xl"></span>
                   <div className="text-right leading-tight">
@@ -879,7 +1243,9 @@ export default function Home() {
                     <span className="text-sm font-extrabold">App Store</span>
                   </div>
                 </motion.a>
+                </ResizableWrapper>
 
+                <ResizableWrapper id="button_google_play">
                 <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
                   <span className="text-xl">▶</span>
                   <div className="text-right leading-tight">
@@ -887,10 +1253,10 @@ export default function Home() {
                     <span className="text-sm font-extrabold">Google Play</span>
                   </div>
                 </motion.a>
+                </ResizableWrapper>
               </div>
             </div>
 
-            {/* مجسم التطبيق */}
             <motion.div 
               {...dragProps}
               className="lg:col-span-6 relative flex justify-center py-6 cursor-grab active:cursor-grabbing z-0"
@@ -1244,306 +1610,252 @@ export default function Home() {
 
           <motion.div {...dragProps} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4 cursor-grab active:cursor-grabbing">
             <p className="text-base sm:text-lg italic text-gray-700 font-medium leading-relaxed">
-              &quot;<EditableText id="testimonial_quote" initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة سريعة وبسيطة تساعدنا على توفير الوقت والجهد." />&quot;
+              &quot;<EditableText id="testimonial_quote" initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة العملاء متجاوبة وممتازة دائماً!" />&quot;
             </p>
             <div>
-              <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="testimonial_author" initialText="نوران البناي" /></h4>
-              <p className="text-xs text-amber-600 font-semibold">Coffee Architecture</p>
+              <p className="font-extrabold text-sm text-gray-900"><EditableText id="testimonial_author" initialText="د. سارة المنصوري" /></p>
+              <p className="text-xs text-gray-500 font-semibold"><EditableText id="testimonial_role" initialText="مؤسسة ورئيسة تنفيذية • شركة الحلول المبتكرة" /></p>
             </div>
           </motion.div>
 
-          <div className="relative w-full overflow-hidden py-4 dir-ltr" dir="ltr">
-            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none" />
-
-            <motion.div 
-              className="flex items-center gap-8 w-max"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{ repeat: Infinity, ease: "linear", duration: 25 }}
-            >
-              {tickerItems.map((partner, idx) => (
-                <motion.div 
-                  key={idx} 
-                  {...dragProps}
-                  className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm min-w-[170px] text-center cursor-grab active:cursor-grabbing z-10"
-                >
-                  <EditableImage 
-                    id={`partner_img_${partner.id}_${idx}`}
-                    initialSrc={partner.image} 
-                    alt={partner.name} 
-                    className="w-16 h-16 rounded-full overflow-hidden mb-3 border border-gray-200 shadow-sm"
-                    imgClassName="w-full h-full object-cover select-none pointer-events-none" 
-                  />
-                  <span className="text-xs font-bold text-gray-900 line-clamp-1">{partner.name}</span>
-                  <span className="text-[10px] font-medium text-gray-500 mt-0.5 line-clamp-1">{partner.role}</span>
-                </motion.div>
+          <div className="space-y-4">
+            <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <EditableText id="partners_grid_head" initialText="شركاؤنا المميزون في الإمارات" />
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {partnerLogos.map((partner) => (
+                <div key={partner.id} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col items-center justify-center text-center shadow-sm">
+                  <div className="w-12 h-12 rounded-full overflow-hidden mb-2 bg-gray-100">
+                    <EditableImage id={`partner_img_${partner.id}`} initialSrc={partner.image} alt={partner.name} className="w-full h-full" imgClassName="w-full h-full object-cover" />
+                  </div>
+                  <h4 className="text-xs font-bold text-gray-800"><EditableText id={`partner_name_${partner.id}`} initialText={partner.name} /></h4>
+                  <p className="text-[10px] text-gray-500"><EditableText id={`partner_role_${partner.id}`} initialText={partner.role} /></p>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
 
         </div>
       </section>
 
-      {/* 13. SECTION: تسعير واضح (Pricing) */}
-      <section id="pricing" className="py-24 bg-white border-t border-gray-200">
+      {/* 13. Pricing Section */}
+      <section id="pricing" className="py-24 bg-white border-t border-gray-200 relative overflow-hidden">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
-              <EditableText id="price_sec_title" initialText="تسعير واضح قيمة حقيقية" />
-            </motion.h2>
-            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText id="price_sec_desc" initialText="باقات تناسب كل مرحلة من نمو مشروعك" /></motion.p>
-            
-            <motion.div {...dragProps} className="inline-flex items-center bg-gray-100 p-1.5 rounded-xl border border-gray-200 cursor-grab active:cursor-grabbing">
-              <button 
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                <EditableText id="price_cycle_m" initialText="شهري" />
-              </button>
-              <button 
-                onClick={() => setBillingCycle('annual')}
-                className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'annual' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                <EditableText id="price_cycle_a" initialText="سنوي" /> <span className="text-amber-400 mr-1"><EditableText id="price_cycle_disc" initialText="خصم 50%" /></span>
-              </button>
+          <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
+            <motion.div {...dragProps} className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing">
+              <EditableText id="pricing_badge" initialText="🏷️ خطط أسعار شفافة ومناسبة للجميع" />
             </motion.div>
-            
-            <p className="text-xs font-bold text-amber-600"><EditableText id="price_sub_banner" initialText="احصل على خصم 50% على سنتك الأولى." /></p>
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing">
+              <EditableText id="pricing_title" initialText="اختر الخطة المناسبة لنشاطك التجاري" />
+            </motion.h2>
+            <motion.p {...dragProps} className="text-sm text-gray-600 font-medium cursor-grab active:cursor-grabbing">
+              <EditableText id="pricing_subtitle" initialText="بدون تكاليف خفية. يمكنك الترقية أو التغيير في أي وقت." />
+            </motion.p>
+
+            <div className="pt-4 flex items-center justify-center gap-4">
+              <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>شهري</span>
+              <button
+                onClick={() => setBillingCycle(billingCycle === 'annual' ? 'monthly' : 'annual')}
+                className="w-14 h-8 bg-gray-900 rounded-full p-1 transition-colors relative"
+              >
+                <div className={`w-6 h-6 bg-amber-500 rounded-full transition-transform ${billingCycle === 'annual' ? 'translate-x-0' : '-translate-x-6'}`} />
+              </button>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-xs font-bold ${billingCycle === 'annual' ? 'text-gray-900' : 'text-gray-500'}`}>سنوي</span>
+                <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300">وفّر 50%</span>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {pricingPlans.map((plan, idx) => (
-              <motion.div 
-                key={idx} 
+              <motion.div
+                key={idx}
                 {...dragProps}
-                className={`bg-white rounded-2xl p-8 border flex flex-col justify-between transition-all relative cursor-grab active:cursor-grabbing z-10 ${plan.popular ? 'border-amber-500 shadow-xl ring-2 ring-amber-500/20' : 'border-gray-200 shadow-sm'}`}
+                className={`bg-white rounded-3xl p-6 border shadow-sm flex flex-col justify-between relative cursor-grab active:cursor-grabbing z-10 ${
+                  plan.popular ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-xl' : 'border-gray-200 hover:border-gray-300'
+                }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3.5 right-6 bg-amber-500 text-gray-900 text-[10px] font-black px-3 py-1 rounded-full shadow-sm">
-                    <EditableText id="plan_popular_tag" initialText="الأكثر شيوعًا" />
+                  <span className="absolute -top-3.5 right-1/2 translate-x-1/2 bg-amber-500 text-gray-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-md">
+                    الأكثر شعبية 🌟
                   </span>
                 )}
-                
-                <div className="space-y-4">
+
+                <div className="space-y-4 text-right">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900"><EditableText id={`plan_name_${idx}`} initialText={plan.name} /></h3>
-                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]"><EditableText id={`plan_desc_${idx}`} initialText={plan.desc} /></p>
+                    <h3 className="text-xl font-extrabold text-gray-900"><EditableText id={`plan_${idx}_name`} initialText={plan.name} /></h3>
+                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]"><EditableText id={`plan_${idx}_desc`} initialText={plan.desc} /></p>
                   </div>
 
-                  <div className="py-4 border-y border-gray-100">
+                  <div className="py-2 border-y border-gray-100">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black text-gray-900">
-                        {typeof plan.priceMonthly === 'number' 
-                          ? (billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly) 
-                          : plan.priceMonthly}
-                      </span>
-                      {typeof plan.priceMonthly === 'number' && <span className="text-xs font-bold text-gray-500"><EditableText id="plan_unit" initialText="درهم / شهري" /></span>}
+                      {typeof plan.priceAnnual === 'number' ? (
+                        <>
+                          <span className="text-3xl font-black text-gray-900">
+                            {billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly}
+                          </span>
+                          <span className="text-xs font-bold text-gray-500">درهم / شهرياً</span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-black text-gray-900">{plan.priceAnnual}</span>
+                      )}
                     </div>
-                    <p className="text-[10px] font-bold text-emerald-600 mt-1"><EditableText id={`plan_save_${idx}`} initialText={plan.saveText} /></p>
+                    <span className="text-[10px] font-bold text-amber-600 block mt-1"><EditableText id={`plan_${idx}_save`} initialText={plan.saveText} /></span>
                   </div>
 
-                  <ul className="space-y-3 text-xs font-semibold text-gray-700">
-                    {plan.features.map((feat, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <span className="text-emerald-600 font-bold">✓</span>
-                        <span><EditableText id={`plan_feat_${idx}_${i}`} initialText={feat} /></span>
+                  <ul className="space-y-2.5 text-xs text-gray-700 pt-2">
+                    {plan.features.map((feat, fIdx) => (
+                      <li key={fIdx} className="flex items-center gap-2">
+                        <span className="text-emerald-500 font-bold">✓</span>
+                        <span><EditableText id={`plan_${idx}_f_${fIdx}`} initialText={feat} /></span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="pt-8">
-                  <Link to="/register" className={`w-full py-3.5 rounded-xl font-bold text-xs text-center block transition-all shadow-sm ${plan.popular ? 'bg-amber-500 hover:bg-amber-600 text-gray-900' : 'bg-gray-900 hover:bg-black text-white'}`}>
-                    <EditableText id={`plan_cta_${idx}`} initialText={plan.cta} />
+                <div className="pt-6 mt-6 border-t border-gray-100">
+                  <Link
+                    to="/register"
+                    className={`w-full py-3 rounded-xl font-bold text-xs text-center block transition-all ${
+                      plan.popular
+                        ? 'bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-md'
+                        : 'bg-gray-900 hover:bg-black text-white'
+                    }`}
+                  >
+                    <EditableText id={`plan_${idx}_cta`} initialText={plan.cta} />
                   </Link>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          <div className="mt-12 text-center text-xs text-gray-500 space-y-1">
-            <p><EditableText id="price_disclaimer" initialText="جميع الأسعار بالدرهم الإماراتي وغير شاملة لضريبة القيمة المضافة. تنطبق الأسعار الترويجية على الاشتراكات الجديدة فقط." /></p>
-            <a href="#" className="underline font-bold text-gray-900"><EditableText id="price_compare_link" initialText="مقارنة كاملة بين الخطط" /></a>
-          </div>
-
         </div>
       </section>
 
-      {/* 14. SECTION: الأسئلة الشائعة (FAQ Accordion) */}
+      {/* 14. FAQ Section */}
       <section id="faq" className="py-24 bg-gray-50 border-t border-gray-200">
-        <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center space-y-3">
-            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText id="faq_sec_title" initialText="الأسئلة الشائعة" /></motion.h2>
-            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText id="faq_sec_desc" initialText="إجابات سريعة لأكثر الاستفسارات شيوعًا" /></motion.p>
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+          
+          <div className="text-center space-y-3 max-w-2xl mx-auto mb-16">
+            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing">
+              <EditableText id="faq_sec_title" initialText="الأسئلة الشائعة" />
+            </motion.h2>
+            <motion.p {...dragProps} className="text-sm font-medium text-gray-600 cursor-grab active:cursor-grabbing">
+              <EditableText id="faq_sec_desc" initialText="إجابات على الأسئلة الأكثر تكراراً حول نظام مزيد للحلول المحاسبية" />
+            </motion.p>
           </div>
 
-          <div className="space-y-4">
+          <div className="max-w-3xl mx-auto space-y-4">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <motion.div key={idx} {...dragProps} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-grab active:cursor-grabbing">
-                  <button 
+                <div 
+                  key={idx} 
+                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all"
+                >
+                  <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full p-6 text-right flex justify-between items-center font-bold text-gray-900 text-sm sm:text-base hover:text-amber-600 transition-colors"
+                    className="w-full p-5 text-right font-extrabold text-sm sm:text-base text-gray-900 flex justify-between items-center gap-4 hover:bg-gray-50 transition-colors"
                   >
                     <span><EditableText id={`faq_q_${idx}`} initialText={faq.q} /></span>
-                    <span className="transform transition-transform duration-300 font-black text-amber-500 text-lg">
-                      {isOpen ? '−' : '+'}
-                    </span>
+                    <span className="text-amber-500 font-bold text-xl">{isOpen ? '−' : '+'}</span>
                   </button>
+
                   <AnimatePresence>
                     {isOpen && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="px-6 pb-6 text-xs sm:text-sm text-gray-600 font-medium leading-relaxed border-t border-gray-100 pt-4"
+                        className="overflow-hidden"
                       >
-                        <EditableText id={`faq_a_${idx}`} initialText={faq.a} />
+                        <div className="p-5 pt-0 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-gray-100">
+                          <EditableText id={`faq_a_${idx}`} initialText={faq.a} />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </div>
               );
             })}
           </div>
+
         </div>
       </section>
 
-      {/* Footer */}
-     
-      {/* 15. SECTION: النشرة الإخبارية والفوتر (Newsletter & Full Footer) */}
-      <footer
-        dir="rtl"
-        className="border-t border-white/10 bg-slate-950 text-slate-400"
-      >
-        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-16">
-
-          {/* Newsletter */}
-          <motion.div {...dragProps} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-amber-500 via-amber-600 to-orange-600 p-6 shadow-2xl sm:p-8 lg:p-10 cursor-grab active:cursor-grabbing">
-
-            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-orange-300/10 blur-3xl" />
-
-            <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_520px]">
-
-              <div className="max-w-2xl text-right">
-                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
-                  <span className="ml-2">✉</span>
-                  <EditableText initialText="النشرة الإخبارية" />
-                </span>
-
-                <h3 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
-                  <EditableText initialText="اشترك في النشرة الإخبارية" />
-                </h3>
-
-                <p className="mt-3 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">
-                  <EditableText initialText="واكب آخر مستجدات عالم الأعمال والمال، مع أفكار عملية تساعدك على اتخاذ قرارات مدروسة بثقة." />
-                </p>
-              </div>
-
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-md"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    type="email"
-                    placeholder="أدخل بريدك الإلكتروني"
-                    className="min-w-0 flex-1 rounded-lg border-0 bg-white px-4 py-3.5 text-right text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none ring-0 transition focus:ring-2 focus:ring-white/60"
-                  />
-
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-lg bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-black active:scale-[0.98]"
-                  >
-                    <EditableText initialText="اشترك الآن" />
-                  </button>
+      {/* 15. Footer Section */}
+      <footer className="bg-gray-900 text-white pt-16 pb-12 border-t border-gray-800 dir-rtl">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+            
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 font-extrabold text-gray-900 text-sm">
+                  BE
                 </div>
-              </form>
-
-            </div>
-          </motion.div>
-
-          {/* Footer Main */}
-          <div className="mt-16 border-b border-white/10 pb-12">
-
-            <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
-
-              <div className="min-w-0">
-                <motion.div {...dragProps} className="flex items-center gap-3 cursor-grab active:cursor-grabbing">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20">
-                    BE
-                  </div>
-
-                  <div>
-                    <div className="text-xl font-black tracking-wide text-white">
-                      MAZEED
-                    </div>
-                    <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-400">
-                      ACCOUNTING
-                    </div>
-                  </div>
-                </motion.div>
-
-                <p className="mt-6 max-w-sm text-sm leading-7 text-slate-400">
-                  <EditableText initialText="برنامج المحاسبة والامتثال الضريبي الأذكى المخصص للأعمال والشركات في دولة الإمارات العربية المتحدة." />
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-2.5">
-                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">LinkedIn</motion.a>
-                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">Twitter (X)</motion.a>
-                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">Instagram</motion.a>
+                <div className="flex flex-col">
+                  <span className="font-extrabold text-base text-white tracking-wide"><EditableText id="ft_logo_1" initialText="ACCOUNTING" /></span>
+                  <span className="text-[10px] font-bold text-amber-400 tracking-widest uppercase"><EditableText id="ft_logo_2" initialText="SERVICES" /></span>
                 </div>
               </div>
 
-              {/* Links Sections */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="المنتج" /></h4>
-                <ul className="mt-4 space-y-2.5 text-xs">
-                  <li><a href="#features" className="hover:text-amber-400 transition-colors"><EditableText initialText="المميزات" /></a></li>
-                  <li><a href="#pricing" className="hover:text-amber-400 transition-colors"><EditableText initialText="الأسعار" /></a></li>
-                  <li><a href="#mobile-app" className="hover:text-amber-400 transition-colors"><EditableText initialText="تطبيق الهاتف" /></a></li>
-                  <li><a href="#migration" className="hover:text-amber-400 transition-colors"><EditableText initialText="الترحيل الذكي" /></a></li>
-                </ul>
-              </div>
+              <p className="text-xs text-gray-400 leading-relaxed max-w-sm">
+                <EditableText id="ft_about" initialText="منصة مزيد المحاسبية المتكاملة لإدارة الأنشطة التجارية والامتثال الضريبي والفوترة الإلكترونية في دولة الإمارات العربية المتحدة." />
+              </p>
 
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="الشركات" /></h4>
-                <ul className="mt-4 space-y-2.5 text-xs">
-                  <li><a href="#why-choose-us" className="hover:text-amber-400 transition-colors"><EditableText initialText="لماذا مزيد؟" /></a></li>
-                  <li><a href="#advisory" className="hover:text-amber-400 transition-colors"><EditableText initialText="المستشارون" /></a></li>
-                  <li><a href="#faq" className="hover:text-amber-400 transition-colors"><EditableText initialText="الأسئلة الشائعة" /></a></li>
-                </ul>
+              <div className="flex items-center gap-3 pt-2 text-gray-400">
+                <a href="#" className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-gray-900 transition-colors text-xs font-bold">X</a>
+                <a href="#" className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-gray-900 transition-colors text-xs font-bold">in</a>
+                <a href="#" className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-gray-900 transition-colors text-xs font-bold">fb</a>
               </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="الامتثال" /></h4>
-                <ul className="mt-4 space-y-2.5 text-xs">
-                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="ضريبة القيمة المضافة" /></a></li>
-                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="ضريبة الشركات" /></a></li>
-                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="الفوترة الإلكترونية" /></a></li>
-                </ul>
-              </div>
-
             </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase text-amber-400 tracking-wider"><EditableText id="ft_head_1" initialText="المنتج" /></h4>
+              <ul className="space-y-2 text-xs text-gray-400">
+                <li><a href="#features" className="hover:text-white transition-colors"><EditableText id="ft_link_1" initialText="المميزات" /></a></li>
+                <li><a href="#why-choose-us" className="hover:text-white transition-colors"><EditableText id="ft_link_2" initialText="لماذا مزيد؟" /></a></li>
+                <li><a href="#mobile-app" className="hover:text-white transition-colors"><EditableText id="ft_link_3" initialText="تطبيق الهاتف" /></a></li>
+                <li><a href="#pricing" className="hover:text-white transition-colors"><EditableText id="ft_link_4" initialText="خطط الأسعار" /></a></li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase text-amber-400 tracking-wider"><EditableText id="ft_head_2" initialText="الشركة" /></h4>
+              <ul className="space-y-2 text-xs text-gray-400">
+                <li><a href="#advisory" className="hover:text-white transition-colors"><EditableText id="ft_link_5" initialText="المستشارون" /></a></li>
+                <li><a href="#migration" className="hover:text-white transition-colors"><EditableText id="ft_link_6" initialText="الترحيل الفوري" /></a></li>
+                <li><a href="#tax-features" className="hover:text-white transition-colors"><EditableText id="ft_link_7" initialText="الامتثال الضريبي" /></a></li>
+                <li><a href="#faq" className="hover:text-white transition-colors"><EditableText id="ft_link_8" initialText="الأسئلة الشائعة" /></a></li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase text-amber-400 tracking-wider"><EditableText id="ft_head_3" initialText="تواصل معنا" /></h4>
+              <ul className="space-y-2 text-xs text-gray-400">
+                <li><EditableText id="ft_contact_1" initialText="📍 دبي، الإمارات العربية المتحدة" /></li>
+                <li><EditableText id="ft_contact_2" initialText="📧 support@mazeed.ae" /></li>
+                <li><EditableText id="ft_contact_3" initialText="📞 +971 4 000 0000" /></li>
+              </ul>
+            </div>
+
           </div>
 
-          {/* Copyright */}
-          <div className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
-            <p>© {new Date().getFullYear()} MAZEED ACCOUNTING. جميع الحقوق محفوظة.</p>
+          <div className="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-500 gap-4">
+            <p><EditableText id="ft_copy" initialText="© 2026 مزيد للحلول المحاسبية. جميع الحقوق محفوظة." /></p>
             <div className="flex gap-6">
-              <a href="#" className="hover:text-slate-300">سياسة الخصوصية</a>
-              <a href="#" className="hover:text-slate-300">شروط الخدمة</a>
+              <a href="#" className="hover:text-gray-400 transition-colors"><EditableText id="ft_privacy" initialText="سياسة الخصوصية" /></a>
+              <a href="#" className="hover:text-gray-400 transition-colors"><EditableText id="ft_terms" initialText="شروط الخدمة" /></a>
             </div>
           </div>
 
         </div>
       </footer>
+
     </div>
   );
 }
-
-   
