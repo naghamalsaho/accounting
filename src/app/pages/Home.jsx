@@ -68,51 +68,66 @@ function EditableText({ initialText, className, tag = 'span' }) {
   );
 }
 
+// مكون لتعديل الصور مباشرة عند النقر وااختيار صورة من الجهاز
+function EditableImage({ initialSrc, alt, className = '', imgClassName = '' }) {
+  const [src, setSrc] = useState(initialSrc);
+  const fileInputRef = useRef(null);
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const newUrl = URL.createObjectURL(file);
+      setSrc(newUrl);
+    }
+  };
+
+  return (
+    <div 
+      className={`relative group/img cursor-pointer overflow-hidden ${className}`} 
+      onClick={handleClick}
+      title="انقر لتغيير الصورة من جهازك"
+    >
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <img src={src} alt={alt} className={imgClassName} loading="lazy" />
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-20">
+        <span className="bg-amber-500 text-gray-900 text-[11px] font-black px-2.5 py-1 rounded-md shadow-md">
+          📷 تغيير الصورة
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const containerRef = useRef(null);
   const [showBanner, setShowBanner] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const { locale, toggleLanguage } = useLanguage();
-  // حالة نافذة الشات الحقيقي
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessage, setChatMessage] = useState('');
-  const [chatLog, setChatLog] = useState([
-    { sender: 'support', text: 'أهلاً بك! أنا أحمد، مستشارك المالي المعتمد في مزيد. كيف يمكنني مساعدتك في امتثال شركتك اليوم؟', time: 'الآن' }
-  ]);
-  
+
   // حالة تبديل الأسعار (شهري / سنوي)
   const [billingCycle, setBillingCycle] = useState('annual');
 
   // حالة الأسئلة الشائعة (FAQ Accordion)
   const [openFaq, setOpenFaq] = useState(null);
 
-  // دالة إرسال الرسالة في الشات
-  const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
-
-    const userText = chatMessage;
-    setChatLog((prev) => [...prev, { sender: 'user', text: userText, time: 'الآن' }]);
-    setChatMessage('');
-
-    setTimeout(() => {
-      setChatLog((prev) => [
-        ...prev,
-        {
-          sender: 'support',
-          text: 'أهلاً بك! تم استلام استعلامك وسيقوم أحد مستشارينا بالرد عليك فوراً.',
-          time: 'الآن'
-        }
-      ]);
-    }, 1000);
-  };
-
-  // إعدادات حركة السحب المحدودة وإعادة التموضع التلقائي
+  // إعدادات حركة السحب المحدودة وإعادة التموضع التلقائي لكل العوامل والقطع
   const dragProps = {
     drag: true,
     dragConstraints: containerRef,
     dragElastic: 0.1,
-    whileDrag: { scale: 1.02, zIndex: 50, cursor: 'grabbing' },
+    whileDrag: { scale: 1.03, zIndex: 50, cursor: 'grabbing' },
     whileHover: { cursor: 'grab' }
   };
 
@@ -142,7 +157,7 @@ export default function Home() {
       desc: 'فواتير أسهل للمستقلين والمشاريع الناشئة.',
       priceMonthly: 'مجاني',
       priceAnnual: 'مجاني',
-      badge: 'مجاني للأبد',
+      saveText: 'مجاني للأبد',
       features: ['مستخدم واحد', 'إدارة المبيعات', 'المنتجات والخدمات', 'مخططات حسابات قابلة للتخصيص', 'تقارير المبيعات الأساسية'],
       cta: 'ابدأ مجانًا',
       popular: false
@@ -159,7 +174,7 @@ export default function Home() {
     },
     {
       name: 'المتقدمة',
-      desc: 'حلول متقدمة للشركات المتوسطة مع المخزون والتجارة الإلكترونية.',
+      desc: 'حلول متتقدمة للشركات المتوسطة مع المخزون والتجارة الإلكترونية.',
       priceMonthly: 170,
       priceAnnual: 85,
       saveText: 'وفّر 1020 درهم في السنة الأولى',
@@ -251,36 +266,12 @@ export default function Home() {
 
   // قائمة الشركاء والعملاء
   const partnerLogos = [
-    { 
-      name: "مؤسسة محمد بن راشد", 
-      role: "Dubai SME", 
-      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&auto=format&fit=crop&q=80" 
-    },
-    { 
-      name: "د. سارة المنصوري", 
-      role: "دائرة التنمية الاقتصادية", 
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" 
-    },
-    { 
-      name: "Supy Tech", 
-      role: "حلول البرمجة الذكية", 
-      image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=80" 
-    },
-    { 
-      name: "م. أحمد الفاسي", 
-      role: "Meydan Free Zone", 
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80" 
-    },
-    { 
-      name: "Stripe Payments", 
-      role: "أنظمة المدفوعات", 
-      image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300&auto=format&fit=crop&q=80" 
-    },
-    { 
-      name: "ليلى الهاشمي", 
-      role: "Hub71 Innovation", 
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" 
-    }
+    { name: "مؤسسة محمد بن راشد", role: "Dubai SME", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&auto=format&fit=crop&q=80" },
+    { name: "د. سارة المنصوري", role: "دائرة التنمية الاقتصادية", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" },
+    { name: "Supy Tech", role: "حلول البرمجة الذكية", image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=80" },
+    { name: "م. أحمد الفاسي", role: "Meydan Free Zone", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80" },
+    { name: "Stripe Payments", role: "أنظمة المدفوعات", image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300&auto=format&fit=crop&q=80" },
+    { name: "ليلى الهاشمي", role: "Hub71 Innovation", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" }
   ];
 
   const tickerItems = [...partnerLogos, ...partnerLogos];
@@ -293,13 +284,15 @@ export default function Home() {
         <div className="bg-gray-900 text-white text-xs md:text-sm py-2.5 px-3 md:px-6 shadow-sm relative z-50 border-b border-gray-800 transition-all">
           <div className="w-full max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-2 mx-auto text-center font-medium">
-              <span className="bg-amber-500 text-gray-900 px-2.5 py-0.5 rounded-full text-xs font-bold border border-amber-400">
+              <motion.span {...dragProps} className="bg-amber-500 text-gray-900 px-2.5 py-0.5 rounded-full text-xs font-bold border border-amber-400 cursor-grab active:cursor-grabbing">
                 <EditableText initialText="عرض خاص 🎁" />
-              </span>
-              <span><EditableText initialText="احصل على خصم 50% على سنتك الأولى في مزيد!" /></span>
-              <a href="#pricing" className="underline font-bold text-amber-400 hover:text-amber-300 transition-colors mr-1">
+              </motion.span>
+              <motion.span {...dragProps} className="cursor-grab active:cursor-grabbing">
+                <EditableText initialText="احصل على خصم 50% على سنتك الأولى في مزيد!" />
+              </motion.span>
+              <motion.a {...dragProps} href="#pricing" className="underline font-bold text-amber-400 hover:text-amber-300 transition-colors mr-1 cursor-grab active:cursor-grabbing">
                 <EditableText initialText="احصل على العرض الآن ←" />
-              </a>
+              </motion.a>
             </div>
             <button 
               onClick={() => setShowBanner(false)}
@@ -316,7 +309,7 @@ export default function Home() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-all">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
-          <div className="flex items-center gap-3 group cursor-pointer">
+          <motion.div {...dragProps} className="flex items-center gap-3 group cursor-grab active:cursor-grabbing">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-900 font-bold text-white shadow-md group-hover:bg-amber-500 group-hover:text-gray-900 transition-colors">
               BE
             </div>
@@ -324,38 +317,43 @@ export default function Home() {
               <span className="font-extrabold text-lg text-gray-900 leading-none tracking-wide"><EditableText initialText="ACCOUNTING" /></span>
               <span className="text-[10px] font-bold text-amber-600 tracking-widest uppercase mt-0.5"><EditableText initialText="SERVICES" /></span>
             </div>
-          </div>
+          </motion.div>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700">
-            <a href="#features" className="hover:text-amber-600 transition-colors"><EditableText initialText="المميزات" /></a>
-            <a href="#why-choose-us" className="hover:text-amber-600 transition-colors"><EditableText initialText="لماذا مزيد؟" /></a>
-            <a href="#advisory" className="hover:text-amber-600 transition-colors"><EditableText initialText="المستشارون" /></a>
-            <a href="#mobile-app" className="hover:text-amber-600 transition-colors"><EditableText initialText="التطبيق" /></a>
-            <a href="#pricing" className="hover:text-amber-600 transition-colors"><EditableText initialText="الأسعار" /></a>
-            <a href="#faq" className="hover:text-amber-600 transition-colors"><EditableText initialText="الأسئلة الشائعة" /></a>
+            <motion.a {...dragProps} href="#features" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="المميزات" /></motion.a>
+            <motion.a {...dragProps} href="#why-choose-us" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="لماذا مزيد؟" /></motion.a>
+            <motion.a {...dragProps} href="#advisory" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="المستشارون" /></motion.a>
+            <motion.a {...dragProps} href="#mobile-app" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="التطبيق" /></motion.a>
+            <motion.a {...dragProps} href="#pricing" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="الأسعار" /></motion.a>
+            <motion.a {...dragProps} href="#faq" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="الأسئلة الشائعة" /></motion.a>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <button 
-            onClick={toggleLanguage}
-  className="text-xs font-semibold text-gray-600 hover:text-gray-900 p-2 border border-gray-200 rounded-lg transition-colors flex items-center gap-1"
->
-            🌐 {locale.toUpperCase()}
-</button>
-
-            <Link 
-              to="/login" 
-              className="text-sm font-semibold text-gray-700 hover:text-amber-600 px-3 py-2 transition-colors"
+            <motion.button 
+              {...dragProps}
+              onClick={toggleLanguage}
+              className="text-xs font-semibold text-gray-600 hover:text-gray-900 p-2 border border-gray-200 rounded-lg transition-colors flex items-center gap-1 cursor-grab active:cursor-grabbing"
             >
-              <EditableText initialText="تسجيل الدخول" />
-            </Link>
+              🌐 {locale.toUpperCase()}
+            </motion.button>
 
-            <Link 
-              to="/register" 
-              className="bg-gray-900 hover:bg-black text-white font-semibold text-xs px-5 py-2.5 rounded-xl border border-gray-900 shadow-sm transition-all transform hover:-translate-y-0.5"
-            >
-              <EditableText initialText="ابدأ تجربة مجانية" />
-            </Link>
+            <motion.div {...dragProps} className="cursor-grab active:cursor-grabbing">
+              <Link 
+                to="/login" 
+                className="text-sm font-semibold text-gray-700 hover:text-amber-600 px-3 py-2 transition-colors"
+              >
+                <EditableText initialText="تسجيل الدخول" />
+              </Link>
+            </motion.div>
+
+            <motion.div {...dragProps} className="cursor-grab active:cursor-grabbing">
+              <Link 
+                to="/register" 
+                className="bg-gray-900 hover:bg-black text-white font-semibold text-xs px-5 py-2.5 rounded-xl border border-gray-900 shadow-sm transition-all transform hover:-translate-y-0.5 inline-block"
+              >
+                <EditableText initialText="ابدأ تجربة مجانية" />
+              </Link>
+            </motion.div>
           </div>
 
           <button 
@@ -392,17 +390,10 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            <motion.div 
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-6 space-y-6 text-right relative z-10"
-            >
+            <div className="lg:col-span-6 space-y-6 text-right relative z-10">
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 bg-gray-100 border border-gray-300 text-gray-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm"
+                {...dragProps}
+                className="inline-flex items-center gap-2 bg-gray-100 border border-gray-300 text-gray-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm cursor-grab active:cursor-grabbing"
               >
                 <span className="flex h-2.5 w-2.5 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -411,7 +402,7 @@ export default function Home() {
                 <EditableText initialText="الملاءمة المثالية للأعمال في الإمارات العربية المتحدة" />
               </motion.div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-[1.3] tracking-tight">
+              <motion.h1 {...dragProps} className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-[1.3] tracking-tight cursor-grab active:cursor-grabbing">
                 <EditableText initialText="برنامج محاسبة ذكي مصمم لك" /> <br />
                 <span className="text-gray-900 relative inline-block mt-2">
                   <EditableText initialText="بخبرة محلية ومعايير عالمية" />
@@ -419,109 +410,60 @@ export default function Home() {
                     <path d="M0 15 Q 50 0 100 15" stroke="currentColor" strokeWidth="4" fill="none" />
                   </svg>
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed max-w-xl">
+              <motion.p {...dragProps} className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed max-w-xl cursor-grab active:cursor-grabbing">
                 <EditableText initialText="جاهزية كاملة للفوترة الإلكترونية والامتثال الضريبي بدون عناء. ركّز على نمو عملك واترك الأرقام لنا." />
-              </p>
+              </motion.p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <motion.a 
-                  whileHover={{ scale: 1.03, translateY: -2 }}
-                  whileTap={{ scale: 0.96 }}
+                  {...dragProps}
                   href="/register" 
-                  className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all"
+                  className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
                 >
                   <EditableText initialText="ابدأ تجربة مجانية" />
                 </motion.a>
                 <motion.a 
-                  whileHover={{ scale: 1.03, translateY: -2 }}
-                  whileTap={{ scale: 0.96 }}
+                  {...dragProps}
                   href="#pricing" 
-                  className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all"
+                  className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
                 >
                   <EditableText initialText="اطلع على الأسعار" />
                 </motion.a>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-xs font-semibold text-gray-500 pt-2">
-                <span className="flex items-center gap-1.5"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="14 يوم تجربة مجانية" /></span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="لا حاجة لبطاقة ائتمان" /></span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="دعم فوري بالإمارات" /></span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="14 يوم تجربة مجانية" /></motion.span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="لا حاجة لبطاقة ائتمان" /></motion.span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="دعم فوري بالإمارات" /></motion.span>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Dashboard Visual - قابل للسحب والتحريك */}
+            {/* Dashboard Visual - المكون المحدث مع الحفاظ على التفاعلية */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-6 relative group cursor-grab active:cursor-grabbing z-0"
+              className="lg:col-span-6 relative flex justify-center items-center cursor-grab active:cursor-grabbing z-0"
             >
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                className="absolute -top-6 -right-4 z-20 bg-gray-900 text-white font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-md border border-gray-800 flex items-center gap-2"
-              >
-                <span><EditableText initialText="معتمد من FTA" /></span>
-                <span className="text-amber-400 text-base">🇦🇪</span>
-              </motion.div>
-
-              <div className="relative rounded-3xl p-4 bg-gray-100 border border-gray-300 shadow-sm transition-all duration-500">
-                <div className="rounded-2xl overflow-hidden bg-white border border-gray-200 text-right">
-                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-700 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                      <EditableText initialText="لوحة تحكم مزيد المالية - الإمارات" />
-                    </span>
-                    <div className="flex gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                    </div>
-                  </div>
-
-                  <div className="p-5 space-y-5 bg-white">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-                        <p className="text-[10px] text-gray-500 font-bold"><EditableText initialText="المبيعات الإجمالية" /></p>
-                        <p className="text-sm font-black text-gray-900 mt-1">AED 124,500</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-                        <p className="text-[10px] text-gray-500 font-bold"><EditableText initialText="الفواتير المستحقة" /></p>
-                        <p className="text-sm font-black text-gray-900 mt-1">18 فاتورة</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-                        <p className="text-[10px] text-gray-500 font-bold"><EditableText initialText="الامتثال الضريبي" /></p>
-                        <p className="text-sm font-black text-emerald-600 mt-1">100%</p>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-xs font-bold text-gray-800"><EditableText initialText="حركة الإيرادات والضرائب" /></span>
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold"><EditableText initialText="متوافق مع الهيئة" /></span>
-                      </div>
-                      <div className="h-32 w-full flex items-end relative">
-                        <svg className="w-full h-full text-amber-500" viewBox="0 0 300 100" fill="none">
-                          <motion.path 
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 1.8, ease: "easeInOut" }}
-                            d="M0,80 Q40,20 80,60 T160,30 T240,70 T300,10" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="3.5" 
-                            strokeLinecap="round" 
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
+              <div className="relative w-full max-w-lg aspect-[16/10] bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 flex items-center justify-center">
+                
+                {/* شارة الاعتماد - معتمدة الموضع فوق الكارد */}
+                <div className="absolute -top-3 -right-3 z-10 bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-md flex items-center gap-1.5 border border-slate-700">
+                  <span className="bg-amber-500 text-slate-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded">AE</span>
+                  <EditableText initialText="معتمد من FTA" />
                 </div>
-              </div>
 
+                {/* حاوية الصورة - تحافظ على الأبعاد المحددة دائماً وقابلة للتعديل عند النقر */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-slate-50 relative">
+                  <EditableImage 
+                    initialSrc="/path-to-your-image.png" 
+                    alt="لوحة تحكم مزيد المالية"
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-cover object-top"
+                  />
+                </div>
+
+              </div>
             </motion.div>
 
           </div>
@@ -537,30 +479,22 @@ export default function Home() {
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
             <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm"
+              {...dragProps}
+              className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing"
             >
               <span><EditableText initialText="🇦🇪 مصمم خصيصاً للسوق الإماراتي" /></span>
             </motion.div>
 
             <motion.h2 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight"
+              {...dragProps}
+              className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing"
             >
               <EditableText initialText="لماذا تختار" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700"><EditableText initialText="مزيد؟" /></span>
             </motion.h2>
 
             <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed"
+              {...dragProps}
+              className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing"
             >
               <EditableText initialText="الملائمة المثالية للأعمال والشركات في دولة الإمارات العربية المتحدة، بتوافق تام مع التشريعات والمعايير المحلية." />
             </motion.p>
@@ -571,16 +505,12 @@ export default function Home() {
             {/* Card 1: E-Invoicing */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
+              className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 cursor-grab active:cursor-grabbing">
                   ⚡
-                </div>
+                </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
                     <EditableText initialText="جاهزية كاملة للفوترة الإلكترونية" />
@@ -599,16 +529,12 @@ export default function Home() {
             {/* Card 2: FTA Tax Compliance */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
+              className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 cursor-grab active:cursor-grabbing">
                   🛡️
-                </div>
+                </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
                     <EditableText initialText="الامتثال الضريبي بدون عناء" />
@@ -627,16 +553,12 @@ export default function Home() {
             {/* Card 3: Financial Reports */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
+              className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 cursor-grab active:cursor-grabbing">
                   📊
-                </div>
+                </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-blue-700 transition-colors">
                     <EditableText initialText="تقارير مالية فورية" />
@@ -655,16 +577,12 @@ export default function Home() {
             {/* Card 4: Local UAE Support */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
+              className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
             >
               <div className="space-y-4 text-right">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 cursor-grab active:cursor-grabbing">
                   🇦🇪
-                </div>
+                </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
                     <EditableText initialText="دعم محلي داخل الإمارات" />
@@ -690,67 +608,70 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-            <span className="text-amber-600 font-bold text-xs uppercase tracking-widest"><EditableText initialText="كل ما تحتاجه، في مكان واحد" /></span>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
+            <motion.span {...dragProps} className="text-amber-600 font-bold text-xs uppercase tracking-widest inline-block cursor-grab active:cursor-grabbing">
+              <EditableText initialText="كل ما تحتاجه، في مكان واحد" />
+            </motion.span>
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight cursor-grab active:cursor-grabbing">
               <EditableText initialText="ميزات محاسبية ذكية مصممة لتساعدك على تطوير أعمالك" />
-            </h2>
+            </motion.h2>
             <div className="w-12 h-1 bg-amber-500 mx-auto rounded-full" />
           </div>
 
           <div className="space-y-8 lg:space-y-10">
-            {integratedFeatures.map((feature) => {
-              const isLeftImage = feature.imagePosition === 'left';
-              
-              return (
-                <motion.div
-                  key={feature.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm relative overflow-hidden"
+           {integratedFeatures.map((feature) => {
+            const isLeftImage = feature.imagePosition === 'left';
+            
+            return (
+              <div
+                key={feature.id}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm relative overflow-hidden"
+              >
+                {/* 1. كارد النصوص */}
+                <motion.div 
+                  {...dragProps}
+                  className={`lg:col-span-6 space-y-4 text-right relative z-10 cursor-grab active:cursor-grabbing ${isLeftImage ? 'order-1 lg:order-1' : 'order-1 lg:order-2'}`}
                 >
-                  <div className={`lg:col-span-6 space-y-4 text-right relative z-10 ${isLeftImage ? 'order-1 lg:order-1' : 'order-1 lg:order-2'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                        {feature.badgeIcon}
-                      </div>
-                      <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                        <EditableText initialText={feature.title} />
-                      </h3>
-                    </div>
-                    <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
-                    <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
-                      <EditableText initialText={feature.description} />
-                    </p>
-                    <div className="space-y-2 pt-1">
-                      {feature.bullets.map((bullet, i) => (
-                        <div key={i} className="flex items-center gap-2.5 text-xs font-bold text-gray-800">
-                          <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
-                          <span><EditableText initialText={bullet} /></span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className={`lg:col-span-6 relative z-0 ${isLeftImage ? 'order-2 lg:order-2' : 'order-2 lg:order-1'}`}>
-                    <motion.div 
-                      {...dragProps} 
-                      className="relative rounded-xl p-2 bg-white border border-gray-200 shadow-sm overflow-hidden cursor-grab active:cursor-grabbing"
-                    >
-                      <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
-                        <motion.img 
-                          src={feature.image} 
-                          alt={feature.imageAlt} 
-                          className="w-full h-full object-cover select-none pointer-events-none" 
-                          loading="lazy" 
-                        />
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <motion.div {...dragProps} className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 cursor-grab active:cursor-grabbing">
+                      {feature.badgeIcon}
                     </motion.div>
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+                      <EditableText initialText={feature.title} />
+                    </h3>
+                  </div>
+                  <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
+                    <EditableText initialText={feature.description} />
+                  </p>
+                  <div className="space-y-2 pt-1">
+                    {feature.bullets.map((bullet, i) => (
+                      <motion.div key={i} {...dragProps} className="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-grab active:cursor-grabbing">
+                        <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
+                        <span><EditableText initialText={bullet} /></span>
+                      </motion.div>
+                    ))}
                   </div>
                 </motion.div>
-              );
-            })}
+
+                {/* 2. كارد الصورة القابلة للتعديل */}
+                <div className={`lg:col-span-6 relative z-0 ${isLeftImage ? 'order-2 lg:order-2' : 'order-2 lg:order-1'}`}>
+                  <motion.div 
+                    {...dragProps} 
+                    className="relative rounded-xl p-2 bg-white border border-gray-200 shadow-sm overflow-hidden cursor-grab active:cursor-grabbing"
+                  >
+                    <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
+                      <EditableImage 
+                        initialSrc={feature.image} 
+                        alt={feature.imageAlt} 
+                        className="w-full h-full"
+                        imgClassName="w-full h-full object-cover select-none pointer-events-none" 
+                      />
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            );
+          })}
           </div>
 
         </div>
@@ -764,21 +685,13 @@ export default function Home() {
           <div className="max-w-4xl mx-auto text-center space-y-8">
             
             <motion.div 
-              initial={{ opacity: 0, y: -15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-2 rounded-full text-xs font-black shadow-lg shadow-amber-500/20"
+              {...dragProps}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-2 rounded-full text-xs font-black shadow-lg shadow-amber-500/20 cursor-grab active:cursor-grabbing"
             >
               <span><EditableText initialText="⚡ الترحيل الفوري والآمن" /></span>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="space-y-4"
-            >
+            <motion.div {...dragProps} className="space-y-4 cursor-grab active:cursor-grabbing">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">
                 <EditableText initialText="التحويل إلى" /> <span className="text-amber-600 relative">
                   <EditableText initialText="مزيد" />
@@ -794,25 +707,21 @@ export default function Home() {
 
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
               className="bg-white/85 backdrop-blur-md border border-amber-200/80 p-6 sm:p-8 rounded-2xl shadow-xl my-8 relative cursor-grab active:cursor-grabbing z-10"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 
                 <div className="flex flex-wrap md:flex-col items-center justify-center gap-3">
                   <span className="text-xs font-extrabold text-gray-400 w-full text-center md:text-right"><EditableText initialText="أنظمتك الحالية:" /></span>
-                  <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform">
+                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
                     <span className="text-emerald-600 text-base">📊</span> <EditableText initialText="ملفات Excel & CSV" />
-                  </div>
-                  <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform">
+                  </motion.div>
+                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
                     <span className="text-blue-600 text-base">📁</span> <EditableText initialText="فواتير PDF" />
-                  </div>
-                  <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform">
+                  </motion.div>
+                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
                     <span className="text-purple-600 text-base">🔄</span> <EditableText initialText="البرامج المحاسبية الأخرى" />
-                  </div>
+                  </motion.div>
                 </div>
 
                 <div className="flex flex-col items-center justify-center space-y-2 py-4 md:py-0">
@@ -823,18 +732,18 @@ export default function Home() {
                       className="w-1/2 h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"
                     />
                   </div>
-                  <span className="text-[11px] font-black text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300/50">
+                  <motion.span {...dragProps} className="text-[11px] font-black text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300/50 cursor-grab active:cursor-grabbing">
                     <EditableText initialText="نقل وتطابق آلي 100%" />
-                  </span>
+                  </motion.span>
                 </div>
 
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg border border-amber-400/50 text-center space-y-2">
+                <motion.div {...dragProps} className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg border border-amber-400/50 text-center space-y-2 cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-xl font-black">
                     M
                   </div>
                   <h4 className="font-extrabold text-sm"><EditableText initialText="منصة مزيد الموحدة" /></h4>
                   <p className="text-[11px] text-amber-100"><EditableText initialText="جاهزة للاستخدام التلقائي فوراً" /></p>
-                </div>
+                </motion.div>
 
               </div>
             </motion.div>
@@ -875,13 +784,14 @@ export default function Home() {
             </div>
 
             <div className="pt-4">
-              <a 
+              <motion.a 
+                {...dragProps}
                 href="/register" 
-                className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
+                className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing"
               >
                 <span><EditableText initialText="جرب أداة الترحيل الذكي مجاناً" /></span>
                 <span className="text-amber-400">←</span>
-              </a>
+              </motion.a>
             </div>
 
           </div>
@@ -896,50 +806,44 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            <motion.div 
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="lg:col-span-6 space-y-8 text-right relative z-10"
-            >
-              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-800 px-4 py-1.5 rounded-full text-xs font-extrabold shadow-sm">
+            <div className="lg:col-span-6 space-y-8 text-right relative z-10">
+              <motion.div {...dragProps} className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-800 px-4 py-1.5 rounded-full text-xs font-extrabold shadow-sm cursor-grab active:cursor-grabbing">
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                 </span>
                 <EditableText initialText="✨ تطبيق مزيد الذكي • معزز بالذكاء الاصطناعي" />
-              </div>
+              </motion.div>
 
-              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">
+              <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing">
                 <EditableText initialText="أعمالك بين يديك،" /> <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700">
                   <EditableText initialText="بذكاء أعلى وسرعة فائقة" />
                 </span>
-              </h2>
+              </motion.h2>
 
-              <p className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed">
+              <motion.p {...dragProps} className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing">
                 <EditableText initialText="لا داعي للإدخال اليدوي المجهد. التقط صور الفواتير، ودع القارئ الذكي (AI OCR) يستخرج البيانات، يصنّف المصروفات، ويسجل المدفوعات فورياً في حساباتك." />
-              </p>
+              </motion.p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all">
+                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xl mb-3">
                     🤖
                   </div>
                   <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText initialText="مسح ذكي للفواتير (AI)" /></h4>
                   <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
-                </div>
+                </motion.div>
 
-                <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all">
+                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xl mb-3">
                     ⚡
                   </div>
                   <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText initialText="تنسيق وتحديث لحظي" /></h4>
                   <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
-                </div>
+                </motion.div>
 
-                <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all sm:col-span-2">
+                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all sm:col-span-2 cursor-grab active:cursor-grabbing">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xl shrink-0">
                       🔔
@@ -949,41 +853,36 @@ export default function Home() {
                       <p className="text-xs text-gray-500 mt-0.5"><EditableText initialText="تنبيهك قبل استحقاق الفواتير وإشعارك بالمدفوعات المتأخرة أولاً بأول." /></p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <a href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
                   <span className="text-xl"></span>
                   <div className="text-right leading-tight">
                     <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
                     <span className="text-sm font-extrabold">App Store</span>
                   </div>
-                </a>
+                </motion.a>
 
-                <a href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
                   <span className="text-xl">▶</span>
                   <div className="text-right leading-tight">
                     <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
                     <span className="text-sm font-extrabold">Google Play</span>
                   </div>
-                </a>
+                </motion.a>
               </div>
-            </motion.div>
+            </div>
 
-            {/* مجسم التطبيق - قابل للسحب والانتقال */}
+            {/* مجسم التطبيق */}
             <motion.div 
               {...dragProps}
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
               className="lg:col-span-6 relative flex justify-center py-6 cursor-grab active:cursor-grabbing z-0"
             >
               <motion.div 
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-                className="absolute -top-2 -right-2 sm:right-4 z-20 bg-white/90 backdrop-blur-md text-gray-900 font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-xl border border-amber-200/80 flex items-center gap-2.5"
+                {...dragProps}
+                className="absolute -top-2 -right-2 sm:right-4 z-20 bg-white/90 backdrop-blur-md text-gray-900 font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-xl border border-amber-200/80 flex items-center gap-2.5 cursor-grab active:cursor-grabbing"
               >
                 <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
                 <span><EditableText initialText="القارئ الذكي AI OCR نشط" /></span>
@@ -991,9 +890,8 @@ export default function Home() {
               </motion.div>
 
               <motion.div 
-                animate={{ y: [0, 8, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }}
-                className="absolute -bottom-4 -left-2 sm:left-4 z-20 bg-white/95 backdrop-blur-md text-gray-800 font-bold text-xs p-3 rounded-2xl shadow-xl border border-gray-200 flex items-center gap-3"
+                {...dragProps}
+                className="absolute -bottom-4 -left-2 sm:left-4 z-20 bg-white/95 backdrop-blur-md text-gray-800 font-bold text-xs p-3 rounded-2xl shadow-xl border border-gray-200 flex items-center gap-3 cursor-grab active:cursor-grabbing"
               >
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center text-lg">
                   ✓
@@ -1054,7 +952,7 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="p-3 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-center justify-between">
+                    <motion.div {...dragProps} className="p-3 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-center justify-between cursor-grab active:cursor-grabbing">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
                           📊
@@ -1065,9 +963,9 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+12.4%</span>
-                    </div>
+                    </motion.div>
 
-                    <div className="p-3 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-center justify-between">
+                    <motion.div {...dragProps} className="p-3 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-center justify-between cursor-grab active:cursor-grabbing">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">
                           ⚡
@@ -1077,7 +975,7 @@ export default function Home() {
                           <p className="text-xs font-black text-gray-900"><EditableText initialText="142 فاتورة هذا الشهر" /></p>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
 
                 </div>
@@ -1093,8 +991,8 @@ export default function Home() {
       <section className="py-24 bg-gray-50 border-t border-gray-200">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 text-center space-y-16">
           <div className="max-w-3xl mx-auto space-y-3">
-            <h2 className="text-3xl font-black text-gray-900"><EditableText initialText="من يستفيد من مزيد؟" /></h2>
-            <p className="text-gray-600 text-sm sm:text-base"><EditableText initialText="حلول مخصصة لاحتياجاتك المختلفة" /></p>
+            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText initialText="من يستفيد من مزيد؟" /></motion.h2>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="حلول مخصصة لااحتياجاتك المختلفة" /></motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1116,7 +1014,7 @@ export default function Home() {
       {/* 9. SECTION: مستشارو مزيد (Advisory) */}
       <section id="advisory" className="py-20 bg-white border-t border-gray-200">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden">
+          <motion.div {...dragProps} className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden cursor-grab active:cursor-grabbing">
             <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
             
             <div className="space-y-4 max-w-xl text-right relative z-10">
@@ -1150,7 +1048,7 @@ export default function Home() {
                 <EditableText initialText="تعرف على المزيد" />
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -1159,12 +1057,12 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
               <EditableText initialText="آلاف الشركات تثق في" /> <span className="text-amber-600"><EditableText initialText="مزيد" /></span>
-            </h2>
-            <p className="text-sm font-medium text-gray-600">
+            </motion.h2>
+            <motion.p {...dragProps} className="text-sm font-medium text-gray-600 cursor-grab active:cursor-grabbing">
               <EditableText initialText="أرقام تعكس التزامنا بالتميز ودعم نمو الأعمال والشركات في الإمارات" />
-            </p>
+            </motion.p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
@@ -1205,21 +1103,21 @@ export default function Home() {
               <EditableText initialText="شعار بعض الشركات والمؤسسات التي نخدمها" />
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 opacity-75 hover:opacity-100 transition-opacity">
-              <div className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200">
+              <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
                 🏢 Dubai SME
-              </div>
-              <div className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200">
+              </motion.div>
+              <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
                 ⚡ Meydan Free Zone
-              </div>
-              <div className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200">
+              </motion.div>
+              <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
                 🚀 Hub71
-              </div>
-              <div className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200">
+              </motion.div>
+              <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
                 🌐 Supy Tech
-              </div>
-              <div className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200">
+              </motion.div>
+              <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
                 💳 Stripe Partner
-              </div>
+              </motion.div>
             </div>
           </div>
 
@@ -1234,29 +1132,22 @@ export default function Home() {
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
             <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm"
+              {...dragProps}
+              className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing"
             >
               <span><EditableText initialText="🛡️ الامتثال الضريبي الكامل في الإمارات" /></span>
             </motion.div>
 
             <motion.h2 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight"
+              {...dragProps}
+              className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing"
             >
               <EditableText initialText="الضرائب" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700"><EditableText initialText="أسهل وأذكى" /></span>
             </motion.h2>
 
             <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed"
+              {...dragProps}
+              className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing"
             >
               <EditableText initialText="كل أدوات الامتثال الضريبي في مكان واحد. كل ما تحتاجه للامتثال لضريبة القيمة المضافة وضريبة الشركات في الإمارات، تجده في برنامج مزيد." />
             </motion.p>
@@ -1327,7 +1218,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 12. Social Proof & Partners - الصور قابلة للسحب */}
+      {/* 12. Social Proof & Partners */}
       <section className="py-20 bg-gray-50 border-t border-gray-200 overflow-hidden">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
@@ -1336,7 +1227,7 @@ export default function Home() {
             <p className="text-sm font-bold text-gray-500"><EditableText initialText="قصص حقيقية ونتائج ملموسة" /></p>
           </div>
 
-          <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4">
+          <motion.div {...dragProps} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4 cursor-grab active:cursor-grabbing">
             <p className="text-base sm:text-lg italic text-gray-700 font-medium leading-relaxed">
               &quot;<EditableText initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة سريعة وبسيطة تساعدنا على توفير الوقت والجهد." />&quot;
             </p>
@@ -1344,7 +1235,7 @@ export default function Home() {
               <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="نوران البناي" /></h4>
               <p className="text-xs text-amber-600 font-semibold">Coffee Architecture</p>
             </div>
-          </div>
+          </motion.div>
 
           <div className="relative w-full overflow-hidden py-4 dir-ltr" dir="ltr">
             <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
@@ -1361,9 +1252,12 @@ export default function Home() {
                   {...dragProps}
                   className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm min-w-[170px] text-center cursor-grab active:cursor-grabbing z-10"
                 >
-                  <div className="w-16 h-16 rounded-full overflow-hidden mb-3 border border-gray-200 shadow-sm">
-                    <motion.img src={partner.image} alt={partner.name} className="w-full h-full object-cover select-none pointer-events-none" loading="lazy" />
-                  </div>
+                  <EditableImage 
+                    initialSrc={partner.image} 
+                    alt={partner.name} 
+                    className="w-16 h-16 rounded-full overflow-hidden mb-3 border border-gray-200 shadow-sm"
+                    imgClassName="w-full h-full object-cover select-none pointer-events-none" 
+                  />
                   <span className="text-xs font-bold text-gray-900 line-clamp-1">{partner.name}</span>
                   <span className="text-[10px] font-medium text-gray-500 mt-0.5 line-clamp-1">{partner.role}</span>
                 </motion.div>
@@ -1379,12 +1273,12 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
               <EditableText initialText="تسعير واضح قيمة حقيقية" />
-            </h2>
-            <p className="text-gray-600 text-sm sm:text-base"><EditableText initialText="باقات تناسب كل مرحلة من نمو مشروعك" /></p>
+            </motion.h2>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="باقات تناسب كل مرحلة من نمو مشروعك" /></motion.p>
             
-            <div className="inline-flex items-center bg-gray-100 p-1.5 rounded-xl border border-gray-200">
+            <motion.div {...dragProps} className="inline-flex items-center bg-gray-100 p-1.5 rounded-xl border border-gray-200 cursor-grab active:cursor-grabbing">
               <button 
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
@@ -1397,7 +1291,7 @@ export default function Home() {
               >
                 <EditableText initialText="سنوي" /> <span className="text-amber-400 mr-1"><EditableText initialText="خصم 50%" /></span>
               </button>
-            </div>
+            </motion.div>
             
             <p className="text-xs font-bold text-amber-600"><EditableText initialText="احصل على خصم 50% على سنتك الأولى." /></p>
           </div>
@@ -1464,15 +1358,15 @@ export default function Home() {
       <section id="faq" className="py-24 bg-gray-50 border-t border-gray-200">
         <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900"><EditableText initialText="الأسئلة الشائعة" /></h2>
-            <p className="text-gray-600 text-sm sm:text-base"><EditableText initialText="إجابات سريعة لأكثر الاستفسارات شيوعًا" /></p>
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText initialText="الأسئلة الشائعة" /></motion.h2>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="إجابات سريعة لأكثر الاستفسارات شيوعًا" /></motion.p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div key={idx} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <motion.div key={idx} {...dragProps} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-grab active:cursor-grabbing">
                   <button 
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
                     className="w-full p-6 text-right flex justify-between items-center font-bold text-gray-900 text-sm sm:text-base hover:text-amber-600 transition-colors"
@@ -1484,245 +1378,30 @@ export default function Home() {
                   </button>
                   <AnimatePresence>
                     {isOpen && (
-                      <motion.div 
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="px-6 pb-6 text-xs sm:text-sm text-gray-600 font-medium leading-relaxed border-t border-gray-100 pt-4"
                       >
-                        <div className="px-6 pb-6 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-4">
-                          <EditableText initialText={faq.a} />
-                        </div>
+                        <EditableText initialText={faq.a} />
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* 15. SECTION: النشرة الإخبارية والفوتر (Newsletter & Full Footer) */}
-      <footer
-        dir="rtl"
-        className="border-t border-white/10 bg-slate-950 text-slate-400"
-      >
-        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-16">
-
-          {/* Newsletter */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-amber-500 via-amber-600 to-orange-600 p-6 shadow-2xl sm:p-8 lg:p-10">
-
-            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-orange-300/10 blur-3xl" />
-
-            <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_520px]">
-
-              <div className="max-w-2xl text-right">
-                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
-                  <span className="ml-2">✉</span>
-                  <EditableText initialText="النشرة الإخبارية" />
-                </span>
-
-                <h3 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
-                  <EditableText initialText="اشترك في النشرة الإخبارية" />
-                </h3>
-
-                <p className="mt-3 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">
-                  <EditableText initialText="واكب آخر مستجدات عالم الأعمال والمال، مع أفكار عملية تساعدك على اتخاذ قرارات مدروسة بثقة." />
-                </p>
-              </div>
-
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-md"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    type="email"
-                    placeholder="أدخل بريدك الإلكتروني"
-                    className="min-w-0 flex-1 rounded-lg border-0 bg-white px-4 py-3.5 text-right text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none ring-0 transition focus:ring-2 focus:ring-white/60"
-                  />
-
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-lg bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-black active:scale-[0.98]"
-                  >
-                    <EditableText initialText="اشترك الآن" />
-                  </button>
-                </div>
-              </form>
-
-            </div>
-          </div>
-
-          {/* Footer Main */}
-          <div className="mt-16 border-b border-white/10 pb-12">
-
-            <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20">
-                    BE
-                  </div>
-
-                  <div>
-                    <div className="text-xl font-black tracking-wide text-white">
-                      MAZEED
-                    </div>
-                    <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-400">
-                      ACCOUNTING
-                    </div>
-                  </div>
-                </div>
-
-                <p className="mt-6 max-w-sm text-sm leading-7 text-slate-400">
-                  <EditableText initialText="برنامج المحاسبة والامتثال الضريبي الأذكى المخصص للأعمال والشركات في دولة الإمارات العربية المتحدة." />
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-2.5">
-                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">LinkedIn</a>
-                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">Facebook</a>
-                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">YouTube</a>
-                  <a href="#" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">X</a>
-                  <a href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950">Instagram</a>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-extrabold text-white"><EditableText initialText="الميزات" /></h4>
-                <ul className="mt-5 space-y-3.5 text-sm">
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="الفواتير" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="الضرائب" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="المخزون" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="المحاسبة" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="التقارير" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="التسوية" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="مسك الدفاتر" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="المصاريف" /></a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-extrabold text-white"><EditableText initialText="الخدمات" /></h4>
-                <ul className="mt-5 space-y-3.5 text-sm">
-                  <li><a href="#advisory" className="leading-6 transition-colors hover:text-amber-400"><EditableText initialText="مستشارو مزيد" /></a></li>
-                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400"><EditableText initialText="خدمات الضرائب" /></a></li>
-                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400"><EditableText initialText="خدمات المدير المالي" /></a></li>
-                  <li><a href="#" className="leading-6 transition-colors hover:text-amber-400"><EditableText initialText="خدمات المحاسبة ومسك الدفاتر" /></a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-extrabold text-white"><EditableText initialText="المساعدة والدعم" /></h4>
-                <ul className="mt-5 space-y-3.5 text-sm">
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="مركز المساعدة" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="أكاديمية مزيد" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="المدونات" /></a></li>
-                  <li><a href="#faq" className="transition-colors hover:text-amber-400"><EditableText initialText="الأسئلة الشائعة" /></a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-extrabold text-white"><EditableText initialText="الشركة" /></h4>
-                <ul className="mt-5 space-y-3.5 text-sm">
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="من نحن" /></a></li>
-                  <li><a href="#pricing" className="transition-colors hover:text-amber-400"><EditableText initialText="الأسعار" /></a></li>
-                  <li><a href="#" className="transition-colors hover:text-amber-400"><EditableText initialText="اتصل بنا" /></a></li>
-                </ul>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5 pt-7 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-center text-slate-500 sm:text-right">© mazeed 2025 جميع الحقوق محفوظة</p>
-            <div className="flex items-center justify-center gap-6 text-slate-500">
-              <a href="#" className="transition-colors hover:text-amber-400">شروط الخدمة</a>
-              <a href="#" className="transition-colors hover:text-amber-400">سياسة الخصوصية</a>
-            </div>
-          </div>
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
+        <div className="w-full max-w-[1440px] mx-auto px-4 text-center text-xs text-gray-400">
+          <p>© {new Date().getFullYear()} جميع الحقوق محفوظة لـ مزيد.</p>
         </div>
       </footer>
-
-      {/* Floating Real Live Chat Widget */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <AnimatePresence>
-          {chatOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute bottom-20 right-0 w-[340px] sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-50 text-right"
-            >
-              <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-sm">
-                    أ
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">أحمد - مستشار مزيد</h4>
-                    <span className="text-[10px] text-emerald-400 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> متصل الآن
-                    </span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setChatOpen(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="p-4 h-72 overflow-y-auto space-y-3 bg-gray-50 flex flex-col">
-                {chatLog.map((msg, index) => (
-                  <div 
-                    key={index} 
-                    className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'mr-auto items-end' : 'ml-0 items-start'}`}
-                  >
-                    <div className={`p-3 rounded-2xl text-xs font-medium ${msg.sender === 'user' ? 'bg-amber-500 text-slate-950 rounded-bl-none' : 'bg-white text-slate-800 border border-gray-200 rounded-br-none shadow-sm'}`}>
-                      {msg.text}
-                    </div>
-                    <span className="text-[9px] text-gray-400 mt-1 px-1">{msg.time}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-3 bg-white border-t border-gray-200 flex items-center gap-2">
-                <input 
-                  type="text"
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="اكتب رسالتك هنا..."
-                  className="flex-1 bg-gray-100 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-amber-500"
-                />
-                <button 
-                  onClick={handleSendMessage}
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 p-2.5 rounded-xl font-bold text-xs shadow-sm transition-colors"
-                >
-                  إرسال
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setChatOpen(!chatOpen)}
-          className="bg-slate-900 hover:bg-black text-white p-4 rounded-full shadow-2xl flex items-center justify-center border-2 border-amber-500/50 relative group"
-        >
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white animate-ping" />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" />
-          <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
-        </motion.button>
-      </div>
 
     </div>
   );
