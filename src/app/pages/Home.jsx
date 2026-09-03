@@ -5,18 +5,26 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../i18n/LanguageContext';
 
-// مكون لتعديل النص عند وضع المؤشر والضغط المطول (Long Press)
-function EditableText({ initialText, className, tag = 'span' }) {
-  const [text, setText] = useState(initialText);
+// مكون لتعديل النص وحفظه في sessionStorage
+function EditableText({ id, initialText, className, tag = 'span' }) {
+  const storageKey = `text_${id || initialText}`;
+  
+  const [text, setText] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(storageKey) || initialText;
+    }
+    return initialText;
+  });
+
   const [isEditing, setIsEditing] = useState(false);
-  const [tempText, setTempText] = useState(initialText);
+  const [tempText, setTempText] = useState(text);
   const timerRef = useRef(null);
 
   const handleMouseDown = () => {
     timerRef.current = setTimeout(() => {
       setIsEditing(true);
       setTempText(text);
-    }, 600); // 600ms ضغط مطول
+    }, 600);
   };
 
   const handleMouseUp = () => {
@@ -26,6 +34,9 @@ function EditableText({ initialText, className, tag = 'span' }) {
   const handleSave = () => {
     setText(tempText);
     setIsEditing(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(storageKey, tempText);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -68,9 +79,17 @@ function EditableText({ initialText, className, tag = 'span' }) {
   );
 }
 
-// مكون لتعديل الصور مباشرة عند النقر وااختيار صورة من الجهاز
-function EditableImage({ initialSrc, alt, className = '', imgClassName = '' }) {
-  const [src, setSrc] = useState(initialSrc);
+// مكون لتعديل الصور وتحويلها إلى Base64 لحفظها في sessionStorage
+function EditableImage({ id, initialSrc, alt, className = '', imgClassName = '' }) {
+  const storageKey = `img_${id || alt || initialSrc}`;
+  
+  const [src, setSrc] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(storageKey) || initialSrc;
+    }
+    return initialSrc;
+  });
+
   const fileInputRef = useRef(null);
 
   const handleClick = (e) => {
@@ -81,8 +100,15 @@ function EditableImage({ initialSrc, alt, className = '', imgClassName = '' }) {
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
-      const newUrl = URL.createObjectURL(file);
-      setSrc(newUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Image = reader.result;
+        setSrc(base64Image);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(storageKey, base64Image);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -116,13 +142,9 @@ export default function Home() {
   
   const { locale, toggleLanguage } = useLanguage();
 
-  // حالة تبديل الأسعار (شهري / سنوي)
   const [billingCycle, setBillingCycle] = useState('annual');
-
-  // حالة الأسئلة الشائعة (FAQ Accordion)
   const [openFaq, setOpenFaq] = useState(null);
 
-  // إعدادات حركة السحب المحدودة وإعادة التموضع التلقائي لكل العوامل والقطع
   const dragProps = {
     drag: true,
     dragConstraints: containerRef,
@@ -131,7 +153,6 @@ export default function Home() {
     whileHover: { cursor: 'grab' }
   };
 
-  // بيانات قسم "من يستفيد من مزيد"
   const personas = [
     {
       title: 'رجل أعمال',
@@ -150,7 +171,6 @@ export default function Home() {
     }
   ];
 
-  // بيانات الأسعار
   const pricingPlans = [
     {
       name: 'الانطلاقة',
@@ -194,7 +214,6 @@ export default function Home() {
     }
   ];
 
-  // الأسئلة الشائعة
   const faqs = [
     { q: 'أي خطة تناسب نشاطي التجاري؟', a: 'تعتمد على حجم عملك؛ الانطلاقة للمشاريع الناشئة، الأساسية والمتقدمة للشركات الصغيرة والمتوسطة، والشاملة للشركات الكبرى التي تحتاج لإدارة مخصصة.' },
     { q: 'هل هناك نسخة مجانية أو تجربة مجانية؟', a: 'نعم، نوفر باقة "الانطلاقة" المجانية للأبد، بالإضافة إلى تجربة مجانية مدتها 14 يوماً للخطط المدفوعة.' },
@@ -204,7 +223,6 @@ export default function Home() {
     { q: 'هل يمكنني ترقية أو تخفيض خطتي في أي وقت؟', a: 'نعم، يمكنك تغيير خطتك في أي وقت بسهولة من لوحة التحكم الخاصة بك.' }
   ];
 
-  // بيانات قسم "نظام متكامل"
   const integratedFeatures = [
     {
       id: 'inventory',
@@ -264,14 +282,13 @@ export default function Home() {
     }
   ];
 
-  // قائمة الشركاء والعملاء
   const partnerLogos = [
-    { name: "مؤسسة محمد بن راشد", role: "Dubai SME", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&auto=format&fit=crop&q=80" },
-    { name: "د. سارة المنصوري", role: "دائرة التنمية الاقتصادية", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" },
-    { name: "Supy Tech", role: "حلول البرمجة الذكية", image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=80" },
-    { name: "م. أحمد الفاسي", role: "Meydan Free Zone", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80" },
-    { name: "Stripe Payments", role: "أنظمة المدفوعات", image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300&auto=format&fit=crop&q=80" },
-    { name: "ليلى الهاشمي", role: "Hub71 Innovation", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" }
+    { id: 'partner_1', name: "مؤسسة محمد بن راشد", role: "Dubai SME", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&auto=format&fit=crop&q=80" },
+    { id: 'partner_2', name: "د. سارة المنصوري", role: "دائرة التنمية الاقتصادية", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" },
+    { id: 'partner_3', name: "Supy Tech", role: "حلول البرمجة الذكية", image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=80" },
+    { id: 'partner_4', name: "م. أحمد الفاسي", role: "Meydan Free Zone", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80" },
+    { id: 'partner_5', name: "Stripe Payments", role: "أنظمة المدفوعات", image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300&auto=format&fit=crop&q=80" },
+    { id: 'partner_6', name: "ليلى الهاشمي", role: "Hub71 Innovation", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" }
   ];
 
   const tickerItems = [...partnerLogos, ...partnerLogos];
@@ -285,13 +302,13 @@ export default function Home() {
           <div className="w-full max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center justify-center gap-2 mx-auto text-center font-medium">
               <motion.span {...dragProps} className="bg-amber-500 text-gray-900 px-2.5 py-0.5 rounded-full text-xs font-bold border border-amber-400 cursor-grab active:cursor-grabbing">
-                <EditableText initialText="عرض خاص 🎁" />
+                <EditableText id="banner_tag" initialText="عرض خاص 🎁" />
               </motion.span>
               <motion.span {...dragProps} className="cursor-grab active:cursor-grabbing">
-                <EditableText initialText="احصل على خصم 50% على سنتك الأولى في مزيد!" />
+                <EditableText id="banner_desc" initialText="احصل على خصم 50% على سنتك الأولى في مزيد!" />
               </motion.span>
               <motion.a {...dragProps} href="#pricing" className="underline font-bold text-amber-400 hover:text-amber-300 transition-colors mr-1 cursor-grab active:cursor-grabbing">
-                <EditableText initialText="احصل على العرض الآن ←" />
+                <EditableText id="banner_link" initialText="احصل على العرض الآن ←" />
               </motion.a>
             </div>
             <button 
@@ -314,18 +331,18 @@ export default function Home() {
               BE
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-lg text-gray-900 leading-none tracking-wide"><EditableText initialText="ACCOUNTING" /></span>
-              <span className="text-[10px] font-bold text-amber-600 tracking-widest uppercase mt-0.5"><EditableText initialText="SERVICES" /></span>
+              <span className="font-extrabold text-lg text-gray-900 leading-none tracking-wide"><EditableText id="logo_txt_1" initialText="ACCOUNTING" /></span>
+              <span className="text-[10px] font-bold text-amber-600 tracking-widest uppercase mt-0.5"><EditableText id="logo_txt_2" initialText="SERVICES" /></span>
             </div>
           </motion.div>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-700">
-            <motion.a {...dragProps} href="#features" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="المميزات" /></motion.a>
-            <motion.a {...dragProps} href="#why-choose-us" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="لماذا مزيد؟" /></motion.a>
-            <motion.a {...dragProps} href="#advisory" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="المستشارون" /></motion.a>
-            <motion.a {...dragProps} href="#mobile-app" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="التطبيق" /></motion.a>
-            <motion.a {...dragProps} href="#pricing" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="الأسعار" /></motion.a>
-            <motion.a {...dragProps} href="#faq" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText initialText="الأسئلة الشائعة" /></motion.a>
+            <motion.a {...dragProps} href="#features" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_feat" initialText="المميزات" /></motion.a>
+            <motion.a {...dragProps} href="#why-choose-us" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_why" initialText="لماذا مزيد؟" /></motion.a>
+            <motion.a {...dragProps} href="#advisory" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_advisors" initialText="المستشارون" /></motion.a>
+            <motion.a {...dragProps} href="#mobile-app" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_app" initialText="التطبيق" /></motion.a>
+            <motion.a {...dragProps} href="#pricing" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_pricing" initialText="الأسعار" /></motion.a>
+            <motion.a {...dragProps} href="#faq" className="hover:text-amber-600 transition-colors cursor-grab active:cursor-grabbing"><EditableText id="nav_faq" initialText="الأسئلة الشائعة" /></motion.a>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
@@ -342,7 +359,7 @@ export default function Home() {
                 to="/login" 
                 className="text-sm font-semibold text-gray-700 hover:text-amber-600 px-3 py-2 transition-colors"
               >
-                <EditableText initialText="تسجيل الدخول" />
+                <EditableText id="btn_login" initialText="تسجيل الدخول" />
               </Link>
             </motion.div>
 
@@ -351,7 +368,7 @@ export default function Home() {
                 to="/register" 
                 className="bg-gray-900 hover:bg-black text-white font-semibold text-xs px-5 py-2.5 rounded-xl border border-gray-900 shadow-sm transition-all transform hover:-translate-y-0.5 inline-block"
               >
-                <EditableText initialText="ابدأ تجربة مجانية" />
+                <EditableText id="btn_trial" initialText="ابدأ تجربة مجانية" />
               </Link>
             </motion.div>
           </div>
@@ -399,13 +416,13 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                 </span>
-                <EditableText initialText="الملاءمة المثالية للأعمال في الإمارات العربية المتحدة" />
+                <EditableText id="hero_badge" initialText="الملاءمة المثالية للأعمال في الإمارات العربية المتحدة" />
               </motion.div>
 
               <motion.h1 {...dragProps} className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-[1.3] tracking-tight cursor-grab active:cursor-grabbing">
-                <EditableText initialText="برنامج محاسبة ذكي مصمم لك" /> <br />
+                <EditableText id="hero_title_1" initialText="برنامج محاسبة ذكي مصمم لك" /> <br />
                 <span className="text-gray-900 relative inline-block mt-2">
-                  <EditableText initialText="بخبرة محلية ومعايير عالمية" />
+                  <EditableText id="hero_title_2" initialText="بخبرة محلية ومعايير عالمية" />
                   <svg className="absolute -bottom-2 right-0 w-full h-3 text-amber-500" viewBox="0 0 100 20" preserveAspectRatio="none">
                     <path d="M0 15 Q 50 0 100 15" stroke="currentColor" strokeWidth="4" fill="none" />
                   </svg>
@@ -413,7 +430,7 @@ export default function Home() {
               </motion.h1>
 
               <motion.p {...dragProps} className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed max-w-xl cursor-grab active:cursor-grabbing">
-                <EditableText initialText="جاهزية كاملة للفوترة الإلكترونية والامتثال الضريبي بدون عناء. ركّز على نمو عملك واترك الأرقام لنا." />
+                <EditableText id="hero_desc" initialText="جاهزية كاملة للفوترة الإلكترونية والامتثال الضريبي بدون عناء. ركّز على نمو عملك واترك الأرقام لنا." />
               </motion.p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -422,40 +439,39 @@ export default function Home() {
                   href="/register" 
                   className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
                 >
-                  <EditableText initialText="ابدأ تجربة مجانية" />
+                  <EditableText id="hero_cta_start" initialText="ابدأ تجربة مجانية" />
                 </motion.a>
                 <motion.a 
                   {...dragProps}
                   href="#pricing" 
                   className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing"
                 >
-                  <EditableText initialText="اطلع على الأسعار" />
+                  <EditableText id="hero_cta_price" initialText="اطلع على الأسعار" />
                 </motion.a>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-xs font-semibold text-gray-500 pt-2">
-                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="14 يوم تجربة مجانية" /></motion.span>
-                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="لا حاجة لبطاقة ائتمان" /></motion.span>
-                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText initialText="دعم فوري بالإمارات" /></motion.span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText id="hero_check_1" initialText="14 يوم تجربة مجانية" /></motion.span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText id="hero_check_2" initialText="لا حاجة لبطاقة ائتمان" /></motion.span>
+                <motion.span {...dragProps} className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing"><span className="text-emerald-600 font-bold">✓</span> <EditableText id="hero_check_3" initialText="دعم فوري بالإمارات" /></motion.span>
               </div>
             </div>
 
-            {/* Dashboard Visual - المكون المحدث مع الحفاظ على التفاعلية */}
+            {/* Dashboard Visual */}
             <motion.div 
               {...dragProps}
               className="lg:col-span-6 relative flex justify-center items-center cursor-grab active:cursor-grabbing z-0"
             >
               <div className="relative w-full max-w-lg aspect-[16/10] bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 flex items-center justify-center">
                 
-                {/* شارة الاعتماد - معتمدة الموضع فوق الكارد */}
                 <div className="absolute -top-3 -right-3 z-10 bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-md flex items-center gap-1.5 border border-slate-700">
                   <span className="bg-amber-500 text-slate-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded">AE</span>
-                  <EditableText initialText="معتمد من FTA" />
+                  <EditableText id="hero_img_badge" initialText="معتمد من FTA" />
                 </div>
 
-                {/* حاوية الصورة - تحافظ على الأبعاد المحددة دائماً وقابلة للتعديل عند النقر */}
                 <div className="w-full h-full rounded-xl overflow-hidden bg-slate-50 relative">
                   <EditableImage 
+                    id="hero_dashboard_img"
                     initialSrc="/path-to-your-image.png" 
                     alt="لوحة تحكم مزيد المالية"
                     className="w-full h-full"
@@ -470,7 +486,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. SECTION: لماذا تختار مزيد؟ (Why Choose Mazeed) */}
+      {/* 4. SECTION: لماذا تختار مزيد؟ */}
       <section id="why-choose-us" className="py-24 bg-gradient-to-b from-white via-amber-50/20 to-slate-50 relative overflow-hidden">
         <div className="absolute top-1/3 right-10 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-slate-200/30 rounded-full blur-3xl -z-10 pointer-events-none" />
@@ -482,27 +498,27 @@ export default function Home() {
               {...dragProps}
               className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing"
             >
-              <span><EditableText initialText="🇦🇪 مصمم خصيصاً للسوق الإماراتي" /></span>
+              <span><EditableText id="why_badge" initialText="🇦🇪 مصمم خصيصاً للسوق الإماراتي" /></span>
             </motion.div>
 
             <motion.h2 
               {...dragProps}
               className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing"
             >
-              <EditableText initialText="لماذا تختار" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700"><EditableText initialText="مزيد؟" /></span>
+              <EditableText id="why_title_1" initialText="لماذا تختار" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700"><EditableText id="why_title_2" initialText="مزيد؟" /></span>
             </motion.h2>
 
             <motion.p 
               {...dragProps}
               className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing"
             >
-              <EditableText initialText="الملائمة المثالية للأعمال والشركات في دولة الإمارات العربية المتحدة، بتوافق تام مع التشريعات والمعايير المحلية." />
+              <EditableText id="why_desc" initialText="الملائمة المثالية للأعمال والشركات في دولة الإمارات العربية المتحدة، بتوافق تام مع التشريعات والمعايير المحلية." />
             </motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            {/* Card 1: E-Invoicing */}
+            {/* Card 1 */}
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -513,20 +529,20 @@ export default function Home() {
                 </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
-                    <EditableText initialText="جاهزية كاملة للفوترة الإلكترونية" />
+                    <EditableText id="why_card1_title" initialText="جاهزية كاملة للفوترة الإلكترونية" />
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText initialText="مزيد جاهز تماماً لمتطلبات الفوترة الإلكترونية في الإمارات، لتبقى دائماً متوافقاً وفي المقدمة." />
+                    <EditableText id="why_card1_desc" initialText="مزيد جاهز تماماً لمتطلبات الفوترة الإلكترونية في الإمارات، لتبقى دائماً متوافقاً وفي المقدمة." />
                   </p>
                 </div>
               </div>
               <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-amber-700">
-                <span><EditableText initialText="متوافق مع E-Invoicing" /></span>
+                <span><EditableText id="why_card1_tag" initialText="متوافق مع E-Invoicing" /></span>
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               </div>
             </motion.div>
 
-            {/* Card 2: FTA Tax Compliance */}
+            {/* Card 2 */}
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -537,20 +553,20 @@ export default function Home() {
                 </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
-                    <EditableText initialText="الامتثال الضريبي بدون عناء" />
+                    <EditableText id="why_card2_title" initialText="الامتثال الضريبي بدون عناء" />
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText initialText="من التسجيل إلى الإقرار، إدارة ضريبة القيمة المضافة والشركات بامتثال كامل لمعايير الهيئة الاتحادية للضرائب (FTA)." />
+                    <EditableText id="why_card2_desc" initialText="من التسجيل إلى الإقرار، إدارة ضريبة القيمة المضافة والشركات بامتثال كامل لمعايير الهيئة الاتحادية للضرائب (FTA)." />
                   </p>
                 </div>
               </div>
               <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-emerald-700">
-                <span><EditableText initialText="معتمد لمعايير FTA" /></span>
+                <span><EditableText id="why_card2_tag" initialText="معتمد لمعايير FTA" /></span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
               </div>
             </motion.div>
 
-            {/* Card 3: Financial Reports */}
+            {/* Card 3 */}
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -561,20 +577,20 @@ export default function Home() {
                 </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-blue-700 transition-colors">
-                    <EditableText initialText="تقارير مالية فورية" />
+                    <EditableText id="why_card3_title" initialText="تقارير مالية فورية" />
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText initialText="ابق على اطلاع بأرقامك لحظة بلحظة مع تقارير مالية مخصصة ومحدّثة تساعدك في اتخاذ قرارات أكثر ذكاءً." />
+                    <EditableText id="why_card3_desc" initialText="ابق على اطلاع بأرقامك لحظة بلحظة مع تقارير مالية مخصصة ومحدّثة تساعدك في اتخاذ قرارات أكثر ذكاءً." />
                   </p>
                 </div>
               </div>
               <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-blue-700">
-                <span><EditableText initialText="تحديثات مباشرة 100%" /></span>
+                <span><EditableText id="why_card3_tag" initialText="تحديثات مباشرة 100%" /></span>
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
               </div>
             </motion.div>
 
-            {/* Card 4: Local UAE Support */}
+            {/* Card 4 */}
             <motion.div 
               {...dragProps}
               className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
@@ -585,15 +601,15 @@ export default function Home() {
                 </motion.div>
                 <div className="space-y-2">
                   <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
-                    <EditableText initialText="دعم محلي داخل الإمارات" />
+                    <EditableText id="why_card4_title" initialText="دعم محلي داخل الإمارات" />
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText initialText="احصل على مساعدة سريعة من خبراء في الإمارات يفهمون طبيعة أعمالك ويتحدثون لغتك بوضوح." />
+                    <EditableText id="why_card4_desc" initialText="احصل على مساعدة سريعة من خبراء في الإمارات يفهمون طبيعة أعمالك ويتحدثون لغتك بوضوح." />
                   </p>
                 </div>
               </div>
               <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-purple-700">
-                <span><EditableText initialText="فريق متخصص متاح" /></span>
+                <span><EditableText id="why_card4_tag" initialText="فريق متخصص متاح" /></span>
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
               </div>
             </motion.div>
@@ -609,10 +625,10 @@ export default function Home() {
           
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
             <motion.span {...dragProps} className="text-amber-600 font-bold text-xs uppercase tracking-widest inline-block cursor-grab active:cursor-grabbing">
-              <EditableText initialText="كل ما تحتاجه، في مكان واحد" />
+              <EditableText id="feat_sec_badge" initialText="كل ما تحتاجه، في مكان واحد" />
             </motion.span>
             <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight cursor-grab active:cursor-grabbing">
-              <EditableText initialText="ميزات محاسبية ذكية مصممة لتساعدك على تطوير أعمالك" />
+              <EditableText id="feat_sec_title" initialText="ميزات محاسبية ذكية مصممة لتساعدك على تطوير أعمالك" />
             </motion.h2>
             <div className="w-12 h-1 bg-amber-500 mx-auto rounded-full" />
           </div>
@@ -626,7 +642,6 @@ export default function Home() {
                 key={feature.id}
                 className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm relative overflow-hidden"
               >
-                {/* 1. كارد النصوص */}
                 <motion.div 
                   {...dragProps}
                   className={`lg:col-span-6 space-y-4 text-right relative z-10 cursor-grab active:cursor-grabbing ${isLeftImage ? 'order-1 lg:order-1' : 'order-1 lg:order-2'}`}
@@ -636,24 +651,23 @@ export default function Home() {
                       {feature.badgeIcon}
                     </motion.div>
                     <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                      <EditableText initialText={feature.title} />
+                      <EditableText id={`feat_${feature.id}_title`} initialText={feature.title} />
                     </h3>
                   </div>
                   <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
                   <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
-                    <EditableText initialText={feature.description} />
+                    <EditableText id={`feat_${feature.id}_desc`} initialText={feature.description} />
                   </p>
                   <div className="space-y-2 pt-1">
                     {feature.bullets.map((bullet, i) => (
                       <motion.div key={i} {...dragProps} className="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-grab active:cursor-grabbing">
                         <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
-                        <span><EditableText initialText={bullet} /></span>
+                        <span><EditableText id={`feat_${feature.id}_b_${i}`} initialText={bullet} /></span>
                       </motion.div>
                     ))}
                   </div>
                 </motion.div>
 
-                {/* 2. كارد الصورة القابلة للتعديل */}
                 <div className={`lg:col-span-6 relative z-0 ${isLeftImage ? 'order-2 lg:order-2' : 'order-2 lg:order-1'}`}>
                   <motion.div 
                     {...dragProps} 
@@ -661,6 +675,7 @@ export default function Home() {
                   >
                     <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
                       <EditableImage 
+                        id={`feat_${feature.id}_img`}
                         initialSrc={feature.image} 
                         alt={feature.imageAlt} 
                         className="w-full h-full"
@@ -677,7 +692,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. SECTION: الترحيل الفوري ونقل البيانات (Data Migration Section) */}
+      {/* 6. SECTION: الترحيل الفوري ونقل البيانات */}
       <section id="migration" className="py-20 bg-gradient-to-b from-slate-50 via-amber-50/40 to-white relative overflow-hidden border-y border-amber-100/60">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-amber-300/20 via-orange-200/20 to-amber-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
@@ -688,20 +703,20 @@ export default function Home() {
               {...dragProps}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-2 rounded-full text-xs font-black shadow-lg shadow-amber-500/20 cursor-grab active:cursor-grabbing"
             >
-              <span><EditableText initialText="⚡ الترحيل الفوري والآمن" /></span>
+              <span><EditableText id="mig_badge" initialText="⚡ الترحيل الفوري والآمن" /></span>
             </motion.div>
 
             <motion.div {...dragProps} className="space-y-4 cursor-grab active:cursor-grabbing">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">
-                <EditableText initialText="التحويل إلى" /> <span className="text-amber-600 relative">
-                  <EditableText initialText="مزيد" />
+                <EditableText id="mig_title_1" initialText="التحويل إلى" /> <span className="text-amber-600 relative">
+                  <EditableText id="mig_title_2" initialText="مزيد" />
                   <svg className="absolute -bottom-2 right-0 w-full h-2 text-amber-400/40" viewBox="0 0 100 20" preserveAspectRatio="none">
                     <path d="M0 15 Q 50 0 100 15" stroke="currentColor" strokeWidth="6" fill="transparent" strokeLinecap="round" />
                   </svg>
-                </span> <EditableText initialText="أسهل وأسرع مما تتخيل!" />
+                </span> <EditableText id="mig_title_3" initialText="أسهل وأسرع مما تتخيل!" />
               </h2>
               <p className="text-sm sm:text-base text-gray-600 font-medium max-w-2xl mx-auto leading-relaxed">
-                <EditableText initialText="انقل كل بياناتك المحاسبية والعملاء والفواتير بضغطة زر واحدة بدون إدخال يدوي، وابدأ العمل اليوم بآمان تام." />
+                <EditableText id="mig_desc" initialText="انقل كل بياناتك المحاسبية والعملاء والفواتير بضغطة زر واحدة بدون إدخال يدوي، وابدأ العمل اليوم بآمان تام." />
               </p>
             </motion.div>
 
@@ -712,15 +727,15 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 
                 <div className="flex flex-wrap md:flex-col items-center justify-center gap-3">
-                  <span className="text-xs font-extrabold text-gray-400 w-full text-center md:text-right"><EditableText initialText="أنظمتك الحالية:" /></span>
+                  <span className="text-xs font-extrabold text-gray-400 w-full text-center md:text-right"><EditableText id="mig_src_head" initialText="أنظمتك الحالية:" /></span>
                   <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-emerald-600 text-base">📊</span> <EditableText initialText="ملفات Excel & CSV" />
+                    <span className="text-emerald-600 text-base">📊</span> <EditableText id="mig_src_excel" initialText="ملفات Excel & CSV" />
                   </motion.div>
                   <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-blue-600 text-base">📁</span> <EditableText initialText="فواتير PDF" />
+                    <span className="text-blue-600 text-base">📁</span> <EditableText id="mig_src_pdf" initialText="فواتير PDF" />
                   </motion.div>
                   <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-purple-600 text-base">🔄</span> <EditableText initialText="البرامج المحاسبية الأخرى" />
+                    <span className="text-purple-600 text-base">🔄</span> <EditableText id="mig_src_other" initialText="البرامج المحاسبية الأخرى" />
                   </motion.div>
                 </div>
 
@@ -733,7 +748,7 @@ export default function Home() {
                     />
                   </div>
                   <motion.span {...dragProps} className="text-[11px] font-black text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300/50 cursor-grab active:cursor-grabbing">
-                    <EditableText initialText="نقل وتطابق آلي 100%" />
+                    <EditableText id="mig_status_pill" initialText="نقل وتطابق آلي 100%" />
                   </motion.span>
                 </div>
 
@@ -741,8 +756,8 @@ export default function Home() {
                   <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-xl font-black">
                     M
                   </div>
-                  <h4 className="font-extrabold text-sm"><EditableText initialText="منصة مزيد الموحدة" /></h4>
-                  <p className="text-[11px] text-amber-100"><EditableText initialText="جاهزة للاستخدام التلقائي فوراً" /></p>
+                  <h4 className="font-extrabold text-sm"><EditableText id="mig_target_head" initialText="منصة مزيد الموحدة" /></h4>
+                  <p className="text-[11px] text-amber-100"><EditableText id="mig_target_sub" initialText="جاهزة للاستخدام التلقائي فوراً" /></p>
                 </motion.div>
 
               </div>
@@ -756,8 +771,8 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg">
                   🛡️
                 </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="استيراد بيانات آمن" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="تشفير كامل لبياناتك المالية دون أي ريسك أو احتمالية لفقدان البيانات." /></p>
+                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat1_title" initialText="استيراد بيانات آمن" /></h4>
+                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat1_desc" initialText="تشفير كامل لبياناتك المالية دون أي ريسك أو احتمالية لفقدان البيانات." /></p>
               </motion.div>
 
               <motion.div 
@@ -767,8 +782,8 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-lg">
                   ⚡
                 </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="جاهزية من اليوم الأول" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="لا حاجة لفترات تهيئة طويلة، يمكنك إظهار التقارير وإصدار الفواتير فوراً." /></p>
+                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat2_title" initialText="جاهزية من اليوم الأول" /></h4>
+                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat2_desc" initialText="لا حاجة لفترات تهيئة طويلة، يمكنك إظهار التقارير وإصدار الفواتير فوراً." /></p>
               </motion.div>
 
               <motion.div 
@@ -778,8 +793,8 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-lg">
                   🚫
                 </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="بدون إدخال يدوي" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="نظام مطابقة الخانات ذكياً يتعرف على أنواع البيانات ويوزعها في مكانها." /></p>
+                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat3_title" initialText="بدون إدخال يدوي" /></h4>
+                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat3_desc" initialText="نظام مطابقة الخانات ذكياً يتعرف على أنواع البيانات ويوزعها في مكانها." /></p>
               </motion.div>
             </div>
 
@@ -789,7 +804,7 @@ export default function Home() {
                 href="/register" 
                 className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing"
               >
-                <span><EditableText initialText="جرب أداة الترحيل الذكي مجاناً" /></span>
+                <span><EditableText id="mig_cta_btn" initialText="جرب أداة الترحيل الذكي مجاناً" /></span>
                 <span className="text-amber-400">←</span>
               </motion.a>
             </div>
@@ -812,18 +827,18 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                 </span>
-                <EditableText initialText="✨ تطبيق مزيد الذكي • معزز بالذكاء الاصطناعي" />
+                <EditableText id="app_badge" initialText="✨ تطبيق مزيد الذكي • معزز بالذكاء الاصطناعي" />
               </motion.div>
 
               <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing">
-                <EditableText initialText="أعمالك بين يديك،" /> <br />
+                <EditableText id="app_title_1" initialText="أعمالك بين يديك،" /> <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700">
-                  <EditableText initialText="بذكاء أعلى وسرعة فائقة" />
+                  <EditableText id="app_title_2" initialText="بذكاء أعلى وسرعة فائقة" />
                 </span>
               </motion.h2>
 
               <motion.p {...dragProps} className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing">
-                <EditableText initialText="لا داعي للإدخال اليدوي المجهد. التقط صور الفواتير، ودع القارئ الذكي (AI OCR) يستخرج البيانات، يصنّف المصروفات، ويسجل المدفوعات فورياً في حساباتك." />
+                <EditableText id="app_desc" initialText="لا داعي للإدخال اليدوي المجهد. التقط صور الفواتير، ودع القارئ الذكي (AI OCR) يستخرج البيانات، يصنّف المصروفات، ويسجل المدفوعات فورياً في حساباتك." />
               </motion.p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -831,16 +846,16 @@ export default function Home() {
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xl mb-3">
                     🤖
                   </div>
-                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText initialText="مسح ذكي للفواتير (AI)" /></h4>
-                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
+                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat1_title" initialText="مسح ذكي للفواتير (AI)" /></h4>
+                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat1_desc" initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
                 </motion.div>
 
                 <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xl mb-3">
                     ⚡
                   </div>
-                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText initialText="تنسيق وتحديث لحظي" /></h4>
-                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
+                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat2_title" initialText="تنسيق وتحديث لحظي" /></h4>
+                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat2_desc" initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
                 </motion.div>
 
                 <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all sm:col-span-2 cursor-grab active:cursor-grabbing">
@@ -849,8 +864,8 @@ export default function Home() {
                       🔔
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="التنبيهات الاستباقية Smart Alerts" /></h4>
-                      <p className="text-xs text-gray-500 mt-0.5"><EditableText initialText="تنبيهك قبل استحقاق الفواتير وإشعارك بالمدفوعات المتأخرة أولاً بأول." /></p>
+                      <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="app_feat3_title" initialText="التنبيهات الاستباقية Smart Alerts" /></h4>
+                      <p className="text-xs text-gray-500 mt-0.5"><EditableText id="app_feat3_desc" initialText="تنبيهك قبل استحقاق الفواتير وإشعارك بالمدفوعات المتأخرة أولاً بأول." /></p>
                     </div>
                   </div>
                 </motion.div>
@@ -885,7 +900,7 @@ export default function Home() {
                 className="absolute -top-2 -right-2 sm:right-4 z-20 bg-white/90 backdrop-blur-md text-gray-900 font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-xl border border-amber-200/80 flex items-center gap-2.5 cursor-grab active:cursor-grabbing"
               >
                 <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
-                <span><EditableText initialText="القارئ الذكي AI OCR نشط" /></span>
+                <span><EditableText id="app_mock_badge" initialText="القارئ الذكي AI OCR نشط" /></span>
                 <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md">99.8%</span>
               </motion.div>
 
@@ -897,7 +912,7 @@ export default function Home() {
                   ✓
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-400 font-medium"><EditableText initialText="تم تحليل فاتورة جديدة" /></p>
+                  <p className="text-[10px] text-gray-400 font-medium"><EditableText id="app_mock_invoice_label" initialText="تم تحليل فاتورة جديدة" /></p>
                   <p className="text-xs font-black text-gray-900">AED 1,850.00 • ضريبة 5%</p>
                 </div>
               </motion.div>
@@ -916,10 +931,10 @@ export default function Home() {
                       <div className="w-7 h-7 rounded-lg bg-amber-500 text-gray-900 font-black text-xs flex items-center justify-center shadow-sm">
                         M
                       </div>
-                      <span className="text-xs font-extrabold text-gray-900"><EditableText initialText="مزيد لمسح الفواتير" /></span>
+                      <span className="text-xs font-extrabold text-gray-900"><EditableText id="app_mock_head" initialText="مزيد لمسح الفواتير" /></span>
                     </div>
                     <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-                      <EditableText initialText="كاميرا AI" />
+                      <EditableText id="app_mock_cam" initialText="كاميرا AI" />
                     </span>
                   </div>
 
@@ -937,17 +952,17 @@ export default function Home() {
 
                     <div className="flex justify-between items-center text-[10px] text-gray-400 z-10">
                       <span>فاتورة #INV-9042</span>
-                      <span className="text-emerald-400 font-mono"><EditableText initialText="جارِ القراءة..." /></span>
+                      <span className="text-emerald-400 font-mono"><EditableText id="app_mock_status" initialText="جارِ القراءة..." /></span>
                     </div>
 
                     <div className="z-10 my-auto text-center space-y-1">
-                      <p className="text-xs text-amber-300 font-bold"><EditableText initialText="مؤسسة الأمل للتجارة" /></p>
+                      <p className="text-xs text-amber-300 font-bold"><EditableText id="app_mock_vendor" initialText="مؤسسة الأمل للتجارة" /></p>
                       <p className="text-xl font-black text-white tracking-wider">AED 3,450.00</p>
                     </div>
 
                     <div className="z-10 flex justify-between items-center text-[9px] text-gray-300 bg-slate-800/80 px-2.5 py-1 rounded-lg backdrop-blur-sm">
                       <span>الضريبة: AED 172.50</span>
-                      <span className="text-amber-400 font-bold"><EditableText initialText="محللة 100%" /></span>
+                      <span className="text-amber-400 font-bold"><EditableText id="app_mock_done" initialText="محللة 100%" /></span>
                     </div>
                   </div>
 
@@ -958,7 +973,7 @@ export default function Home() {
                           📊
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-400 font-bold"><EditableText initialText="المبيعات اليومية" /></p>
+                          <p className="text-[10px] text-gray-400 font-bold"><EditableText id="app_stat_sales_lbl" initialText="المبيعات اليومية" /></p>
                           <p className="text-xs font-black text-gray-900">AED 14,230.00</p>
                         </div>
                       </div>
@@ -971,8 +986,8 @@ export default function Home() {
                           ⚡
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-400 font-bold"><EditableText initialText="الفواتير المعالجة بالذكاء" /></p>
-                          <p className="text-xs font-black text-gray-900"><EditableText initialText="142 فاتورة هذا الشهر" /></p>
+                          <p className="text-[10px] text-gray-400 font-bold"><EditableText id="app_stat_ai_lbl" initialText="الفواتير المعالجة بالذكاء" /></p>
+                          <p className="text-xs font-black text-gray-900"><EditableText id="app_stat_ai_val" initialText="142 فاتورة هذا الشهر" /></p>
                         </div>
                       </div>
                     </motion.div>
@@ -987,12 +1002,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. SECTION: من يستفيد من مزيد؟ (Personas) */}
+      {/* 8. SECTION: من يستفيد من مزيد؟ */}
       <section className="py-24 bg-gray-50 border-t border-gray-200">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 text-center space-y-16">
           <div className="max-w-3xl mx-auto space-y-3">
-            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText initialText="من يستفيد من مزيد؟" /></motion.h2>
-            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="حلول مخصصة لااحتياجاتك المختلفة" /></motion.p>
+            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText id="persona_sec_title" initialText="من يستفيد من مزيد؟" /></motion.h2>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText id="persona_sec_desc" initialText="حلول مخصصة لااحتياجاتك المختلفة" /></motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1002,16 +1017,16 @@ export default function Home() {
                 {...dragProps}
                 className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-4 text-right cursor-grab active:cursor-grabbing z-10"
               >
-                <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full"><EditableText initialText={p.tag} /></span>
-                <h3 className="text-xl font-bold text-gray-900"><EditableText initialText={p.title} /></h3>
-                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed"><EditableText initialText={p.desc} /></p>
+                <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full"><EditableText id={`persona_tag_${idx}`} initialText={p.tag} /></span>
+                <h3 className="text-xl font-bold text-gray-900"><EditableText id={`persona_title_${idx}`} initialText={p.title} /></h3>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed"><EditableText id={`persona_desc_${idx}`} initialText={p.desc} /></p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 9. SECTION: مستشارو مزيد (Advisory) */}
+      {/* 9. SECTION: مستشارو مزيد */}
       <section id="advisory" className="py-20 bg-white border-t border-gray-200">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           <motion.div {...dragProps} className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden cursor-grab active:cursor-grabbing">
@@ -1019,18 +1034,18 @@ export default function Home() {
             
             <div className="space-y-4 max-w-xl text-right relative z-10">
               <span className="bg-amber-500 text-gray-900 text-xs font-black px-3.5 py-1.5 rounded-full inline-block shadow-sm">
-                <EditableText initialText="مستشارو مزيد" />
+                <EditableText id="adv_badge" initialText="مستشارو مزيد" />
               </span>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
-                <EditableText initialText="احصل على خبراء ماليين، وليس مجرد برامج" />
+                <EditableText id="adv_title" initialText="احصل على خبراء ماليين، وليس مجرد برامج" />
               </h2>
               <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-medium">
-                <EditableText initialText="تجنّب الغرامات واضمن امتثال كامل مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب" />
+                <EditableText id="adv_desc" initialText="تجنّب الغرامات واضمن امتثال كامل مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب" />
               </p>
               
               <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-amber-400">
-                <span className="flex items-center gap-1.5">✓ <EditableText initialText="مستشارون معتمدون من FTA" /></span>
-                <span className="flex items-center gap-1.5">✓ <EditableText initialText="استجابة فورية" /></span>
+                <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_1" initialText="مستشارون معتمدون من FTA" /></span>
+                <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_2" initialText="استجابة فورية" /></span>
               </div>
             </div>
 
@@ -1039,29 +1054,29 @@ export default function Home() {
                 href="#pricing" 
                 className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold px-8 py-4 rounded-2xl text-center text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
               >
-                <EditableText initialText="احجز استشارة مجانية" />
+                <EditableText id="adv_cta_book" initialText="احجز استشارة مجانية" />
               </a>
               <a 
                 href="#faq" 
                 className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-6 py-4 rounded-2xl text-center text-sm transition-all backdrop-blur-sm"
               >
-                <EditableText initialText="تعرف على المزيد" />
+                <EditableText id="adv_cta_more" initialText="تعرف على المزيد" />
               </a>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 10. SECTION: آلاف الشركات تثق في مزيد (Trust & Stats) */}
+      {/* 10. SECTION: آلاف الشركات تثق في مزيد */}
       <section className="w-full py-20 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 border-y border-amber-100/60">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto mb-16">
             <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
-              <EditableText initialText="آلاف الشركات تثق في" /> <span className="text-amber-600"><EditableText initialText="مزيد" /></span>
+              <EditableText id="trust_title_1" initialText="آلاف الشركات تثق في" /> <span className="text-amber-600"><EditableText id="trust_title_2" initialText="مزيد" /></span>
             </motion.h2>
             <motion.p {...dragProps} className="text-sm font-medium text-gray-600 cursor-grab active:cursor-grabbing">
-              <EditableText initialText="أرقام تعكس التزامنا بالتميز ودعم نمو الأعمال والشركات في الإمارات" />
+              <EditableText id="trust_desc" initialText="أرقام تعكس التزامنا بالتميز ودعم نمو الأعمال والشركات في الإمارات" />
             </motion.p>
           </div>
 
@@ -1073,7 +1088,7 @@ export default function Home() {
               <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
                 +4,000
               </span>
-              <p className="text-sm font-bold text-gray-800"><EditableText initialText="شركة تم خدمتها" /></p>
+              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_1_label" initialText="شركة تم خدمتها" /></p>
             </motion.div>
 
             <motion.div 
@@ -1083,7 +1098,7 @@ export default function Home() {
               <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
                 +2 مليون
               </span>
-              <p className="text-sm font-bold text-gray-800"><EditableText initialText="معاملة شهرية" /></p>
+              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_2_label" initialText="معاملة شهرية" /></p>
             </motion.div>
 
             <motion.div 
@@ -1094,13 +1109,13 @@ export default function Home() {
                 <span className="text-3xl sm:text-4xl font-black text-amber-600">4.7</span>
                 <span className="text-amber-400 text-2xl">★</span>
               </div>
-              <p className="text-sm font-bold text-gray-800"><EditableText initialText="تقييم عملاء ممتاز" /></p>
+              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_3_label" initialText="تقييم عملاء ممتاز" /></p>
             </motion.div>
           </div>
 
           <div className="pt-8 border-t border-gray-100">
             <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-8">
-              <EditableText initialText="شعار بعض الشركات والمؤسسات التي نخدمها" />
+              <EditableText id="partners_head" initialText="شعار بعض الشركات والمؤسسات التي نخدمها" />
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 opacity-75 hover:opacity-100 transition-opacity">
               <motion.div {...dragProps} className="h-10 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-700 font-extrabold text-xs sm:text-sm flex items-center justify-center border border-gray-200 cursor-grab active:cursor-grabbing">
@@ -1124,7 +1139,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 11. SECTION: الضرائب أسهل وأذكى (Tax Features Section) */}
+      {/* 11. SECTION: الضرائب أسهل وأذكى */}
       <section id="tax-features" className="py-24 bg-white relative overflow-hidden">
         <div className="absolute top-1/2 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
@@ -1135,21 +1150,21 @@ export default function Home() {
               {...dragProps}
               className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing"
             >
-              <span><EditableText initialText="🛡️ الامتثال الضريبي الكامل في الإمارات" /></span>
+              <span><EditableText id="tax_badge" initialText="🛡️ الامتثال الضريبي الكامل في الإمارات" /></span>
             </motion.div>
 
             <motion.h2 
               {...dragProps}
               className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight cursor-grab active:cursor-grabbing"
             >
-              <EditableText initialText="الضرائب" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700"><EditableText initialText="أسهل وأذكى" /></span>
+              <EditableText id="tax_title_1" initialText="الضرائب" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700"><EditableText id="tax_title_2" initialText="أسهل وأذكى" /></span>
             </motion.h2>
 
             <motion.p 
               {...dragProps}
               className="text-sm sm:text-base text-gray-600 font-medium leading-relaxed cursor-grab active:cursor-grabbing"
             >
-              <EditableText initialText="كل أدوات الامتثال الضريبي في مكان واحد. كل ما تحتاجه للامتثال لضريبة القيمة المضافة وضريبة الشركات في الإمارات، تجده في برنامج مزيد." />
+              <EditableText id="tax_desc" initialText="كل أدوات الامتثال الضريبي في مكان واحد. كل ما تحتاجه للامتثال لضريبة القيمة المضافة وضريبة الشركات في الإمارات، تجده في برنامج مزيد." />
             </motion.p>
           </div>
 
@@ -1162,10 +1177,10 @@ export default function Home() {
                 🧮
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
-                <EditableText initialText="حساب سلس للضرائب" />
+                <EditableText id="tax_card1_title" initialText="حساب سلس للضرائب" />
               </h3>
               <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText initialText="تطبيق سريع لضريبة القيمة المضافة وضريبة الشركات على كل معاملة دون إعداد يدوي." />
+                <EditableText id="tax_card1_desc" initialText="تطبيق سريع لضريبة القيمة المضافة وضريبة الشركات على كل معاملة دون إعداد يدوي." />
               </p>
             </motion.div>
 
@@ -1177,10 +1192,10 @@ export default function Home() {
                 📈
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-teal-700 transition-colors">
-                <EditableText initialText="متابعة الضرائب" />
+                <EditableText id="tax_card2_title" initialText="متابعة الضرائب" />
               </h3>
               <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText initialText="راقب التزامات ضريبة القيمة المضافة والشركات لحظة بلحظة مع فئات الخصم الجاهزة." />
+                <EditableText id="tax_card2_desc" initialText="راقب التزامات ضريبة القيمة المضافة والشركات لحظة بلحظة مع فئات الخصم الجاهزة." />
               </p>
             </motion.div>
 
@@ -1192,10 +1207,10 @@ export default function Home() {
                 📄
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
-                <EditableText initialText="تقارير جاهزة للهيئة الاتحادية للضرائب" />
+                <EditableText id="tax_card3_title" initialText="تقارير جاهزة للهيئة الاتحادية للضرائب" />
               </h3>
               <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText initialText="أنشئ إقرارات وملخصات ضريبة القيمة المضافة وضريبة الشركات بالتنسيق المطلوب رسمياً من الهيئة." />
+                <EditableText id="tax_card3_desc" initialText="أنشئ إقرارات وملخصات ضريبة القيمة المضافة وضريبة الشركات بالتنسيق المطلوب رسمياً من الهيئة." />
               </p>
             </motion.div>
 
@@ -1207,10 +1222,10 @@ export default function Home() {
                 🔔
               </div>
               <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
-                <EditableText initialText="متابعة المدفوعات الضريبية" />
+                <EditableText id="tax_card4_title" initialText="متابعة المدفوعات الضريبية" />
               </h3>
               <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText initialText="شاهد المبالغ المستحقة ومواعيد الدفع القادمة مع مؤشرات حالة واضحة وتنبيهات مبكرة." />
+                <EditableText id="tax_card4_desc" initialText="شاهد المبالغ المستحقة ومواعيد الدفع القادمة مع مؤشرات حالة واضحة وتنبيهات مبكرة." />
               </p>
             </motion.div>
           </div>
@@ -1223,16 +1238,16 @@ export default function Home() {
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
           
           <div className="text-center mb-16 space-y-3">
-            <h2 className="text-3xl font-black text-gray-900"><EditableText initialText="شركاء النجاح" /></h2>
-            <p className="text-sm font-bold text-gray-500"><EditableText initialText="قصص حقيقية ونتائج ملموسة" /></p>
+            <h2 className="text-3xl font-black text-gray-900"><EditableText id="proof_sec_title" initialText="شركاء النجاح" /></h2>
+            <p className="text-sm font-bold text-gray-500"><EditableText id="proof_sec_desc" initialText="قصص حقيقية ونتائج ملموسة" /></p>
           </div>
 
           <motion.div {...dragProps} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4 cursor-grab active:cursor-grabbing">
             <p className="text-base sm:text-lg italic text-gray-700 font-medium leading-relaxed">
-              &quot;<EditableText initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة سريعة وبسيطة تساعدنا على توفير الوقت والجهد." />&quot;
+              &quot;<EditableText id="testimonial_quote" initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة سريعة وبسيطة تساعدنا على توفير الوقت والجهد." />&quot;
             </p>
             <div>
-              <h4 className="font-extrabold text-gray-900 text-sm"><EditableText initialText="نوران البناي" /></h4>
+              <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="testimonial_author" initialText="نوران البناي" /></h4>
               <p className="text-xs text-amber-600 font-semibold">Coffee Architecture</p>
             </div>
           </motion.div>
@@ -1253,6 +1268,7 @@ export default function Home() {
                   className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm min-w-[170px] text-center cursor-grab active:cursor-grabbing z-10"
                 >
                   <EditableImage 
+                    id={`partner_img_${partner.id}_${idx}`}
                     initialSrc={partner.image} 
                     alt={partner.name} 
                     className="w-16 h-16 rounded-full overflow-hidden mb-3 border border-gray-200 shadow-sm"
@@ -1274,26 +1290,26 @@ export default function Home() {
           
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
             <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
-              <EditableText initialText="تسعير واضح قيمة حقيقية" />
+              <EditableText id="price_sec_title" initialText="تسعير واضح قيمة حقيقية" />
             </motion.h2>
-            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="باقات تناسب كل مرحلة من نمو مشروعك" /></motion.p>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText id="price_sec_desc" initialText="باقات تناسب كل مرحلة من نمو مشروعك" /></motion.p>
             
             <motion.div {...dragProps} className="inline-flex items-center bg-gray-100 p-1.5 rounded-xl border border-gray-200 cursor-grab active:cursor-grabbing">
               <button 
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
               >
-                <EditableText initialText="شهري" />
+                <EditableText id="price_cycle_m" initialText="شهري" />
               </button>
               <button 
                 onClick={() => setBillingCycle('annual')}
                 className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${billingCycle === 'annual' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
               >
-                <EditableText initialText="سنوي" /> <span className="text-amber-400 mr-1"><EditableText initialText="خصم 50%" /></span>
+                <EditableText id="price_cycle_a" initialText="سنوي" /> <span className="text-amber-400 mr-1"><EditableText id="price_cycle_disc" initialText="خصم 50%" /></span>
               </button>
             </motion.div>
             
-            <p className="text-xs font-bold text-amber-600"><EditableText initialText="احصل على خصم 50% على سنتك الأولى." /></p>
+            <p className="text-xs font-bold text-amber-600"><EditableText id="price_sub_banner" initialText="احصل على خصم 50% على سنتك الأولى." /></p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
@@ -1305,14 +1321,14 @@ export default function Home() {
               >
                 {plan.popular && (
                   <span className="absolute -top-3.5 right-6 bg-amber-500 text-gray-900 text-[10px] font-black px-3 py-1 rounded-full shadow-sm">
-                    <EditableText initialText="الأكثر شيوعًا" />
+                    <EditableText id="plan_popular_tag" initialText="الأكثر شيوعًا" />
                   </span>
                 )}
                 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900"><EditableText initialText={plan.name} /></h3>
-                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]"><EditableText initialText={plan.desc} /></p>
+                    <h3 className="text-lg font-bold text-gray-900"><EditableText id={`plan_name_${idx}`} initialText={plan.name} /></h3>
+                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]"><EditableText id={`plan_desc_${idx}`} initialText={plan.desc} /></p>
                   </div>
 
                   <div className="py-4 border-y border-gray-100">
@@ -1322,16 +1338,16 @@ export default function Home() {
                           ? (billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly) 
                           : plan.priceMonthly}
                       </span>
-                      {typeof plan.priceMonthly === 'number' && <span className="text-xs font-bold text-gray-500"><EditableText initialText="درهم / شهري" /></span>}
+                      {typeof plan.priceMonthly === 'number' && <span className="text-xs font-bold text-gray-500"><EditableText id="plan_unit" initialText="درهم / شهري" /></span>}
                     </div>
-                    <p className="text-[10px] font-bold text-emerald-600 mt-1"><EditableText initialText={plan.saveText} /></p>
+                    <p className="text-[10px] font-bold text-emerald-600 mt-1"><EditableText id={`plan_save_${idx}`} initialText={plan.saveText} /></p>
                   </div>
 
                   <ul className="space-y-3 text-xs font-semibold text-gray-700">
                     {plan.features.map((feat, i) => (
                       <li key={i} className="flex items-center gap-2">
                         <span className="text-emerald-600 font-bold">✓</span>
-                        <span><EditableText initialText={feat} /></span>
+                        <span><EditableText id={`plan_feat_${idx}_${i}`} initialText={feat} /></span>
                       </li>
                     ))}
                   </ul>
@@ -1339,7 +1355,7 @@ export default function Home() {
 
                 <div className="pt-8">
                   <Link to="/register" className={`w-full py-3.5 rounded-xl font-bold text-xs text-center block transition-all shadow-sm ${plan.popular ? 'bg-amber-500 hover:bg-amber-600 text-gray-900' : 'bg-gray-900 hover:bg-black text-white'}`}>
-                    <EditableText initialText={plan.cta} />
+                    <EditableText id={`plan_cta_${idx}`} initialText={plan.cta} />
                   </Link>
                 </div>
               </motion.div>
@@ -1347,8 +1363,8 @@ export default function Home() {
           </div>
 
           <div className="mt-12 text-center text-xs text-gray-500 space-y-1">
-            <p><EditableText initialText="جميع الأسعار بالدرهم الإماراتي وغير شاملة لضريبة القيمة المضافة. تنطبق الأسعار الترويجية على الاشتراكات الجديدة فقط." /></p>
-            <a href="#" className="underline font-bold text-gray-900"><EditableText initialText="مقارنة كاملة بين الخطط" /></a>
+            <p><EditableText id="price_disclaimer" initialText="جميع الأسعار بالدرهم الإماراتي وغير شاملة لضريبة القيمة المضافة. تنطبق الأسعار الترويجية على الاشتراكات الجديدة فقط." /></p>
+            <a href="#" className="underline font-bold text-gray-900"><EditableText id="price_compare_link" initialText="مقارنة كاملة بين الخطط" /></a>
           </div>
 
         </div>
@@ -1358,8 +1374,8 @@ export default function Home() {
       <section id="faq" className="py-24 bg-gray-50 border-t border-gray-200">
         <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
-            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText initialText="الأسئلة الشائعة" /></motion.h2>
-            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText initialText="إجابات سريعة لأكثر الاستفسارات شيوعًا" /></motion.p>
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText id="faq_sec_title" initialText="الأسئلة الشائعة" /></motion.h2>
+            <motion.p {...dragProps} className="text-gray-600 text-sm sm:text-base cursor-grab active:cursor-grabbing"><EditableText id="faq_sec_desc" initialText="إجابات سريعة لأكثر الاستفسارات شيوعًا" /></motion.p>
           </div>
 
           <div className="space-y-4">
@@ -1371,7 +1387,7 @@ export default function Home() {
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
                     className="w-full p-6 text-right flex justify-between items-center font-bold text-gray-900 text-sm sm:text-base hover:text-amber-600 transition-colors"
                   >
-                    <span><EditableText initialText={faq.q} /></span>
+                    <span><EditableText id={`faq_q_${idx}`} initialText={faq.q} /></span>
                     <span className="transform transition-transform duration-300 font-black text-amber-500 text-lg">
                       {isOpen ? '−' : '+'}
                     </span>
@@ -1385,7 +1401,7 @@ export default function Home() {
                         transition={{ duration: 0.2 }}
                         className="px-6 pb-6 text-xs sm:text-sm text-gray-600 font-medium leading-relaxed border-t border-gray-100 pt-4"
                       >
-                        <EditableText initialText={faq.a} />
+                        <EditableText id={`faq_a_${idx}`} initialText={faq.a} />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1397,12 +1413,137 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
-        <div className="w-full max-w-[1440px] mx-auto px-4 text-center text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} جميع الحقوق محفوظة لـ مزيد.</p>
+     
+      {/* 15. SECTION: النشرة الإخبارية والفوتر (Newsletter & Full Footer) */}
+      <footer
+        dir="rtl"
+        className="border-t border-white/10 bg-slate-950 text-slate-400"
+      >
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-16">
+
+          {/* Newsletter */}
+          <motion.div {...dragProps} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-amber-500 via-amber-600 to-orange-600 p-6 shadow-2xl sm:p-8 lg:p-10 cursor-grab active:cursor-grabbing">
+
+            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-orange-300/10 blur-3xl" />
+
+            <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_520px]">
+
+              <div className="max-w-2xl text-right">
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
+                  <span className="ml-2">✉</span>
+                  <EditableText initialText="النشرة الإخبارية" />
+                </span>
+
+                <h3 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl lg:text-4xl">
+                  <EditableText initialText="اشترك في النشرة الإخبارية" />
+                </h3>
+
+                <p className="mt-3 max-w-xl text-sm leading-7 text-amber-50 sm:text-base">
+                  <EditableText initialText="واكب آخر مستجدات عالم الأعمال والمال، مع أفكار عملية تساعدك على اتخاذ قرارات مدروسة بثقة." />
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-md"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="email"
+                    placeholder="أدخل بريدك الإلكتروني"
+                    className="min-w-0 flex-1 rounded-lg border-0 bg-white px-4 py-3.5 text-right text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none ring-0 transition focus:ring-2 focus:ring-white/60"
+                  />
+
+                  <button
+                    type="submit"
+                    className="shrink-0 rounded-lg bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-black active:scale-[0.98]"
+                  >
+                    <EditableText initialText="اشترك الآن" />
+                  </button>
+                </div>
+              </form>
+
+            </div>
+          </motion.div>
+
+          {/* Footer Main */}
+          <div className="mt-16 border-b border-white/10 pb-12">
+
+            <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+
+              <div className="min-w-0">
+                <motion.div {...dragProps} className="flex items-center gap-3 cursor-grab active:cursor-grabbing">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20">
+                    BE
+                  </div>
+
+                  <div>
+                    <div className="text-xl font-black tracking-wide text-white">
+                      MAZEED
+                    </div>
+                    <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-400">
+                      ACCOUNTING
+                    </div>
+                  </div>
+                </motion.div>
+
+                <p className="mt-6 max-w-sm text-sm leading-7 text-slate-400">
+                  <EditableText initialText="برنامج المحاسبة والامتثال الضريبي الأذكى المخصص للأعمال والشركات في دولة الإمارات العربية المتحدة." />
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">LinkedIn</motion.a>
+                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">Twitter (X)</motion.a>
+                  <motion.a {...dragProps} href="#" className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300 transition-all hover:border-amber-400/30 hover:bg-amber-500 hover:text-slate-950 cursor-grab active:cursor-grabbing">Instagram</motion.a>
+                </div>
+              </div>
+
+              {/* Links Sections */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="المنتج" /></h4>
+                <ul className="mt-4 space-y-2.5 text-xs">
+                  <li><a href="#features" className="hover:text-amber-400 transition-colors"><EditableText initialText="المميزات" /></a></li>
+                  <li><a href="#pricing" className="hover:text-amber-400 transition-colors"><EditableText initialText="الأسعار" /></a></li>
+                  <li><a href="#mobile-app" className="hover:text-amber-400 transition-colors"><EditableText initialText="تطبيق الهاتف" /></a></li>
+                  <li><a href="#migration" className="hover:text-amber-400 transition-colors"><EditableText initialText="الترحيل الذكي" /></a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="الشركات" /></h4>
+                <ul className="mt-4 space-y-2.5 text-xs">
+                  <li><a href="#why-choose-us" className="hover:text-amber-400 transition-colors"><EditableText initialText="لماذا مزيد؟" /></a></li>
+                  <li><a href="#advisory" className="hover:text-amber-400 transition-colors"><EditableText initialText="المستشارون" /></a></li>
+                  <li><a href="#faq" className="hover:text-amber-400 transition-colors"><EditableText initialText="الأسئلة الشائعة" /></a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white"><EditableText initialText="الامتثال" /></h4>
+                <ul className="mt-4 space-y-2.5 text-xs">
+                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="ضريبة القيمة المضافة" /></a></li>
+                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="ضريبة الشركات" /></a></li>
+                  <li><a href="#tax-features" className="hover:text-amber-400 transition-colors"><EditableText initialText="الفوترة الإلكترونية" /></a></li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
+            <p>© {new Date().getFullYear()} MAZEED ACCOUNTING. جميع الحقوق محفوظة.</p>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-slate-300">سياسة الخصوصية</a>
+              <a href="#" className="hover:text-slate-300">شروط الخدمة</a>
+            </div>
+          </div>
+
         </div>
       </footer>
-
     </div>
   );
 }
+
+   
