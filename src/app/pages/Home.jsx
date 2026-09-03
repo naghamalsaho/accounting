@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../i18n/LanguageContext';
 
-function ResizableWrapper({ children, id, defaultWidth = 'auto', defaultHeight = 'auto', className = '' }) {
+function ResizableWrapper({ children, id, defaultWidth = '100%', defaultHeight = 'auto', className = '' }) {
   const storageKey = `size_${id}`;
   const [size, setSize] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -86,7 +86,7 @@ function ResizableWrapper({ children, id, defaultWidth = 'auto', defaultHeight =
   );
 }
 
-// 1. منتقي الألوان التفاعلي الناعم عند النقر (Contextual Smooth Color Picker)
+// 1. منتقي الألوان التفاعلي الممتد القابل للسحب (Contextual Smooth Color Picker)
 function ColorPopover({ isOpen, onClose, textColor, setTextColor, bgColor, setBgColor, storagePrefix }) {
   if (!isOpen) return null;
 
@@ -111,15 +111,20 @@ function ColorPopover({ isOpen, onClose, textColor, setTextColor, bgColor, setBg
   return (
     <AnimatePresence>
       <motion.div
+        drag
+        dragMomentum={false}
         initial={{ opacity: 0, scale: 0.88, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: 8 }}
         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-        className="absolute z-[2147483647] bottom-full mb-2 right-0 max-h-[70vh] w-64 max-w-[calc(100vw-1rem)] overflow-y-auto bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl shadow-2xl p-3.5 text-xs font-sans text-gray-900 dir-rtl"
+        className="fixed z-[2147483647] top-1/4 left-1/2 -translate-x-1/2 w-70 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl shadow-2xl p-3.5 text-xs font-sans text-gray-900 dir-rtl cursor-grab active:cursor-grabbing"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* مقبض سحب بؤري علوي */}
+        <div className="w-12 h-1.5 bg-gray-300/80 hover:bg-amber-500 rounded-full mx-auto mb-2 transition-colors cursor-grab active:cursor-grabbing" title="انقر واسحب لتحريك نافذة الألوان" />
+
         <div className="flex justify-between items-center pb-2 border-b border-gray-100 mb-2.5">
-          <span className="font-extrabold text-[11px] text-gray-800 flex items-center gap-1.5">
+          <span className="font-extrabold text-[11px] text-gray-800 flex items-center gap-1.5 select-none">
             <span>🎨</span> تخصيص اللون الناعم
           </span>
           <button 
@@ -257,46 +262,46 @@ function EditableText({ id, initialText, className, tag = 'span' }) {
   }
 
   return (
-    <ResizableWrapper id={`text_${id || initialText}`}>
-    <div className="relative inline-block group/editable">
-      <Tag
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleMouseDown}
-        onTouchEnd={handleMouseUp}
-        title="انقر مطولاً لتعديل النص • انقر أيقونة الألوان للتخصيص"
-        style={{
-          color: textColor || undefined,
-          backgroundColor: bgColor !== 'transparent' ? bgColor : undefined,
-        }}
-        className={`cursor-pointer select-none transition-all rounded px-1 py-0.5 group-hover/editable:ring-1 group-hover/editable:ring-amber-400/80 ${className || ''}`}
-      >
-        {text}
-      </Tag>
+    <ResizableWrapper id={`text_${id || initialText}`} defaultWidth="auto">
+      <div className="relative inline-block group/editable">
+        <Tag
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchEnd={handleMouseUp}
+          title="انقر مطولاً لتعديل النص • انقر أيقونة الألوان للتخصيص"
+          style={{
+            color: textColor || undefined,
+            backgroundColor: bgColor !== 'transparent' ? bgColor : undefined,
+          }}
+          className={`cursor-pointer select-none transition-all rounded px-1 py-0.5 group-hover/editable:ring-1 group-hover/editable:ring-amber-400/80 ${className || ''}`}
+        >
+          {text}
+        </Tag>
 
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowColorPicker(!showColorPicker);
-        }}
-        className="opacity-0 group-hover/editable:opacity-100 transition-opacity absolute -top-2.5 -left-2.5 bg-white border border-gray-200 text-gray-700 hover:text-amber-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md z-30"
-        title="تغيير الألوان"
-      >
-        🎨
-      </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowColorPicker(!showColorPicker);
+          }}
+          className="opacity-0 group-hover/editable:opacity-100 transition-opacity absolute -top-2.5 -left-2.5 bg-white border border-gray-200 text-gray-700 hover:text-amber-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md z-30"
+          title="تغيير الألوان"
+        >
+          🎨
+        </button>
 
-      <ColorPopover
-        isOpen={showColorPicker}
-        onClose={() => setShowColorPicker(false)}
-        textColor={textColor}
-        setTextColor={setTextColor}
-        bgColor={bgColor}
-        setBgColor={setBgColor}
-        storagePrefix={storageKey}
-      />
-    </div>
+        <ColorPopover
+          isOpen={showColorPicker}
+          onClose={() => setShowColorPicker(false)}
+          textColor={textColor}
+          setTextColor={setTextColor}
+          bgColor={bgColor}
+          setBgColor={setBgColor}
+          storagePrefix={storageKey}
+        />
+      </div>
     </ResizableWrapper>
   );
 }
@@ -335,25 +340,25 @@ function EditableImage({ id, initialSrc, alt, className = '', imgClassName = '' 
 
   return (
     <ResizableWrapper id={`image_${id || alt || initialSrc}`} defaultWidth="100%">
-    <div 
-      className={`relative group/img cursor-pointer overflow-hidden ${className}`} 
-      onClick={handleClick}
-      title="انقر لتغيير الصورة من جهازك"
-    >
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      <img src={src} alt={alt} className={imgClassName} loading="lazy" />
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-20">
-        <span className="bg-amber-500 text-gray-900 text-[11px] font-black px-2.5 py-1 rounded-md shadow-md">
-          📷 تغيير الصورة
-        </span>
+      <div 
+        className={`relative group/img cursor-pointer overflow-hidden ${className}`} 
+        onClick={handleClick}
+        title="انقر لتغيير الصورة من جهازك"
+      >
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <img src={src} alt={alt} className={imgClassName} loading="lazy" />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-20">
+          <span className="bg-amber-500 text-gray-900 text-[11px] font-black px-2.5 py-1 rounded-md shadow-md">
+            📷 تغيير الصورة
+          </span>
+        </div>
       </div>
-    </div>
     </ResizableWrapper>
   );
 }
@@ -639,15 +644,6 @@ export default function Home() {
     }
   ];
 
-  const partnerLogos = [
-    { id: 'partner_1', name: "مؤسسة محمد بن راشد", role: "Dubai SME", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&auto=format&fit=crop&q=80" },
-    { id: 'partner_2', name: "د. سارة المنصوري", role: "دائرة التنمية الاقتصادية", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" },
-    { id: 'partner_3', name: "Supy Tech", role: "حلول البرمجة الذكية", image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=80" },
-    { id: 'partner_4', name: "م. أحمد الفاسي", role: "Meydan Free Zone", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=80" },
-    { id: 'partner_5', name: "Stripe Payments", role: "أنظمة المدفوعات", image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300&auto=format&fit=crop&q=80" },
-    { id: 'partner_6', name: "ليلى الهاشمي", role: "Hub71 Innovation", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80" }
-  ];
-
   return (
     <div ref={containerRef} className="min-h-screen bg-white text-gray-900 font-sans selection:bg-amber-500 selection:text-white relative overflow-x-hidden" dir="rtl">
       
@@ -792,13 +788,13 @@ export default function Home() {
               </motion.p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <ResizableWrapper id="button_hero_start">
-                  <motion.a {...dragProps} href="/register" className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                <ResizableWrapper id="button_hero_start" defaultWidth="auto">
+                  <motion.a {...dragProps} href="/register" className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing inline-block">
                     <EditableText id="hero_cta_start" initialText="ابدأ تجربة مجانية" />
                   </motion.a>
                 </ResizableWrapper>
-                <ResizableWrapper id="button_hero_price">
-                  <motion.a {...dragProps} href="#pricing" className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                <ResizableWrapper id="button_hero_price" defaultWidth="auto">
+                  <motion.a {...dragProps} href="#pricing" className="bg-white border border-gray-300 hover:border-gray-900 text-gray-800 font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm transition-all cursor-grab active:cursor-grabbing inline-block">
                     <EditableText id="hero_cta_price" initialText="اطلع على الأسعار" />
                   </motion.a>
                 </ResizableWrapper>
@@ -872,103 +868,103 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
             <ResizableWrapper id="card_why_1" defaultWidth="100%">
-            <motion.div 
-              {...dragProps}
-              className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="space-y-4 text-right">
-                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 cursor-grab active:cursor-grabbing">
-                  ⚡
-                </motion.div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
-                    <EditableText id="why_card1_title" initialText="جاهزية كاملة للفوترة الإلكترونية" />
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText id="why_card1_desc" initialText="مزيد جاهز تماماً لمتطلبات الفوترة الإلكترونية في الإمارات، لتبقى دائماً متوافقاً وفي المقدمة." />
-                  </p>
+              <motion.div 
+                {...dragProps}
+                className="bg-white border border-gray-200/90 hover:border-amber-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="space-y-4 text-right">
+                  <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shadow-amber-500/20 cursor-grab active:cursor-grabbing">
+                    ⚡
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
+                      <EditableText id="why_card1_title" initialText="جاهزية كاملة للفوترة الإلكترونية" />
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                      <EditableText id="why_card1_desc" initialText="مزيد جاهز تماماً لمتطلبات الفوترة الإلكترونية في الإمارات، لتبقى دائماً متوافقاً وفي المقدمة." />
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-amber-700">
-                <span><EditableText id="why_card1_tag" initialText="متوافق مع E-Invoicing" /></span>
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              </div>
-            </motion.div>
+                <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-amber-700">
+                  <span><EditableText id="why_card1_tag" initialText="متوافق مع E-Invoicing" /></span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                </div>
+              </motion.div>
             </ResizableWrapper>
 
-            <ResizableWrapper id="card_why_2" className="w-full">
-            <motion.div 
-              {...dragProps}
-              className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="space-y-4 text-right">
-                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 cursor-grab active:cursor-grabbing">
-                  🛡️
-                </motion.div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
-                    <EditableText id="why_card2_title" initialText="الامتثال الضريبي بدون عناء" />
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText id="why_card2_desc" initialText="من التسجيل إلى الإقرار، إدارة ضريبة القيمة المضافة والشركات بامتثال كامل لمعايير الهيئة الاتحادية للضرائب (FTA)." />
-                  </p>
+            <ResizableWrapper id="card_why_2" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-white border border-gray-200/90 hover:border-emerald-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="space-y-4 text-right">
+                  <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/20 cursor-grab active:cursor-grabbing">
+                    🛡️
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
+                      <EditableText id="why_card2_title" initialText="الامتثال الضريبي بدون عناء" />
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                      <EditableText id="why_card2_desc" initialText="من التسجيل إلى الإقرار، إدارة ضريبة القيمة المضافة والشركات بامتثال كامل لمعايير الهيئة الاتحادية للضرائب (FTA)." />
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-emerald-700">
-                <span><EditableText id="why_card2_tag" initialText="معتمد لمعايير FTA" /></span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              </div>
-            </motion.div>
+                <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-emerald-700">
+                  <span><EditableText id="why_card2_tag" initialText="معتمد لمعايير FTA" /></span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                </div>
+              </motion.div>
             </ResizableWrapper>
 
-            <ResizableWrapper id="card_why_3" className="w-full">
-            <motion.div 
-              {...dragProps}
-              className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="space-y-4 text-right">
-                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 cursor-grab active:cursor-grabbing">
-                  📊
-                </motion.div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-black text-gray-900 group-hover:text-blue-700 transition-colors">
-                    <EditableText id="why_card3_title" initialText="تقارير مالية فورية" />
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText id="why_card3_desc" initialText="ابق على اطلاع بأرقامك لحظة بلحظة مع تقارير مالية مخصصة ومحدّثة تساعدك في اتخاذ قرارات أكثر ذكاءً." />
-                  </p>
+            <ResizableWrapper id="card_why_3" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-white border border-gray-200/90 hover:border-blue-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="space-y-4 text-right">
+                  <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/20 cursor-grab active:cursor-grabbing">
+                    📊
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-black text-gray-900 group-hover:text-blue-700 transition-colors">
+                      <EditableText id="why_card3_title" initialText="تقارير مالية فورية" />
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                      <EditableText id="why_card3_desc" initialText="ابق على اطلاع بأرقامك لحظة بلحظة مع تقارير مالية مخصصة ومحدّثة تساعدك في اتخاذ قرارات أكثر ذكاءً." />
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-blue-700">
-                <span><EditableText id="why_card3_tag" initialText="تحديثات مباشرة 100%" /></span>
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-              </div>
-            </motion.div>
+                <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-blue-700">
+                  <span><EditableText id="why_card3_tag" initialText="تحديثات مباشرة 100%" /></span>
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                </div>
+              </motion.div>
             </ResizableWrapper>
 
-            <ResizableWrapper id="card_why_4" className="w-full">
-            <motion.div 
-              {...dragProps}
-              className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="space-y-4 text-right">
-                <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 cursor-grab active:cursor-grabbing">
-                  🇦🇪
-                </motion.div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
-                    <EditableText id="why_card4_title" initialText="دعم محلي داخل الإمارات" />
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                    <EditableText id="why_card4_desc" initialText="احصل على مساعدة سريعة من خبراء في الإمارات يفهمون طبيعة أعمالك ويتحدثون لغتك بوضوح." />
-                  </p>
+            <ResizableWrapper id="card_why_4" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-white border border-gray-200/90 hover:border-purple-400 p-7 rounded-2xl shadow-sm hover:shadow-xl transition-colors duration-300 relative group flex flex-col justify-between cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="space-y-4 text-right">
+                  <motion.div {...dragProps} className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/20 cursor-grab active:cursor-grabbing">
+                    🇦🇪
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
+                      <EditableText id="why_card4_title" initialText="دعم محلي داخل الإمارات" />
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                      <EditableText id="why_card4_desc" initialText="احصل على مساعدة سريعة من خبراء في الإمارات يفهمون طبيعة أعمالك ويتحدثون لغتك بوضوح." />
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-purple-700">
-                <span><EditableText id="why_card4_tag" initialText="فريق متخصص متاح" /></span>
-                <span className="w-2 h-2 rounded-full bg-purple-500" />
-              </div>
-            </motion.div>
+                <div className="pt-6 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-purple-700">
+                  <span><EditableText id="why_card4_tag" initialText="فريق متخصص متاح" /></span>
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                </div>
+              </motion.div>
             </ResizableWrapper>
 
           </div>
@@ -995,53 +991,54 @@ export default function Home() {
             const isLeftImage = feature.imagePosition === 'left';
             
             return (
-              <div
-                key={feature.id}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm relative overflow-hidden"
-              >
-                <motion.div 
-                  {...dragProps}
-                  className={`lg:col-span-6 space-y-4 text-right relative z-10 cursor-grab active:cursor-grabbing ${isLeftImage ? 'order-1 lg:order-1' : 'order-1 lg:order-2'}`}
+              <ResizableWrapper key={feature.id} id={`card_feat_${feature.id}`} defaultWidth="100%">
+                <div
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center border border-gray-200 p-6 sm:p-8 rounded-2xl bg-gray-50/50 shadow-sm relative overflow-hidden h-full"
                 >
-                  <div className="flex items-center gap-3">
-                    <motion.div {...dragProps} className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 cursor-grab active:cursor-grabbing">
-                      {feature.badgeIcon}
-                    </motion.div>
-                    <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                      <EditableText id={`feat_${feature.id}_title`} initialText={feature.title} />
-                    </h3>
-                  </div>
-                  <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
-                    <EditableText id={`feat_${feature.id}_desc`} initialText={feature.description} />
-                  </p>
-                  <div className="space-y-2 pt-1">
-                    {feature.bullets.map((bullet, i) => (
-                      <motion.div key={i} {...dragProps} className="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-grab active:cursor-grabbing">
-                        <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
-                        <span><EditableText id={`feat_${feature.id}_b_${i}`} initialText={bullet} /></span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                <div className={`lg:col-span-6 relative z-0 ${isLeftImage ? 'order-2 lg:order-2' : 'order-2 lg:order-1'}`}>
                   <motion.div 
-                    {...dragProps} 
-                    className="relative rounded-xl p-2 bg-white border border-gray-200 shadow-sm overflow-hidden cursor-grab active:cursor-grabbing"
+                    {...dragProps}
+                    className={`lg:col-span-6 space-y-4 text-right relative z-10 cursor-grab active:cursor-grabbing ${isLeftImage ? 'order-1 lg:order-1' : 'order-1 lg:order-2'}`}
                   >
-                    <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
-                      <EditableImage 
-                        id={`feat_${feature.id}_img`}
-                        initialSrc={feature.image} 
-                        alt={feature.imageAlt} 
-                        className="w-full h-full"
-                        imgClassName="w-full h-full object-cover select-none pointer-events-none" 
-                      />
+                    <div className="flex items-center gap-3">
+                      <motion.div {...dragProps} className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 cursor-grab active:cursor-grabbing">
+                        {feature.badgeIcon}
+                      </motion.div>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+                        <EditableText id={`feat_${feature.id}_title`} initialText={feature.title} />
+                      </h3>
+                    </div>
+                    <div className="w-8 h-0.5 bg-amber-500 rounded-full" />
+                    <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed">
+                      <EditableText id={`feat_${feature.id}_desc`} initialText={feature.description} />
+                    </p>
+                    <div className="space-y-2 pt-1">
+                      {feature.bullets.map((bullet, i) => (
+                        <motion.div key={i} {...dragProps} className="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-grab active:cursor-grabbing">
+                          <span className="w-4 h-4 rounded bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
+                          <span><EditableText id={`feat_${feature.id}_b_${i}`} initialText={bullet} /></span>
+                        </motion.div>
+                      ))}
                     </div>
                   </motion.div>
+
+                  <div className={`lg:col-span-6 relative z-0 ${isLeftImage ? 'order-2 lg:order-2' : 'order-2 lg:order-1'}`}>
+                    <motion.div 
+                      {...dragProps} 
+                      className="relative rounded-xl p-2 bg-white border border-gray-200 shadow-sm overflow-hidden cursor-grab active:cursor-grabbing"
+                    >
+                      <div className="relative rounded-lg overflow-hidden shadow-inner bg-white aspect-[16/10] flex items-center justify-center border border-gray-100">
+                        <EditableImage 
+                          id={`feat_${feature.id}_img`}
+                          initialSrc={feature.image} 
+                          alt={feature.imageAlt} 
+                          className="w-full h-full"
+                          imgClassName="w-full h-full object-cover select-none pointer-events-none" 
+                        />
+                      </div>
+                    </motion.div>
+                  </div>
                 </div>
-              </div>
+              </ResizableWrapper>
             );
           })}
           </div>
@@ -1077,93 +1074,103 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <motion.div 
-              {...dragProps}
-              className="bg-white/85 backdrop-blur-md border border-amber-200/80 p-6 sm:p-8 rounded-2xl shadow-xl my-8 relative cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                
-                <div className="flex flex-wrap md:flex-col items-center justify-center gap-3">
-                  <span className="text-xs font-extrabold text-gray-400 w-full text-center md:text-right"><EditableText id="mig_src_head" initialText="أنظمتك الحالية:" /></span>
-                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-emerald-600 text-base">📊</span> <EditableText id="mig_src_excel" initialText="ملفات Excel & CSV" />
-                  </motion.div>
-                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-blue-600 text-base">📁</span> <EditableText id="mig_src_pdf" initialText="فواتير PDF" />
-                  </motion.div>
-                  <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
-                    <span className="text-purple-600 text-base">🔄</span> <EditableText id="mig_src_other" initialText="البرامج المحاسبية الأخرى" />
-                  </motion.div>
-                </div>
-
-                <div className="flex flex-col items-center justify-center space-y-2 py-4 md:py-0">
-                  <div className="w-full bg-amber-100 h-1.5 rounded-full relative overflow-hidden max-w-[180px]">
-                    <motion.div 
-                      animate={{ x: ['-100%', '100%'] }}
-                      transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
-                      className="w-1/2 h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"
-                    />
+            <ResizableWrapper id="card_mig_main" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-white/85 backdrop-blur-md border border-amber-200/80 p-6 sm:p-8 rounded-2xl shadow-xl my-8 relative cursor-grab active:cursor-grabbing z-10 text-right"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  
+                  <div className="flex flex-wrap md:flex-col items-center justify-center gap-3">
+                    <span className="text-xs font-extrabold text-gray-400 w-full text-center md:text-right"><EditableText id="mig_src_head" initialText="أنظمتك الحالية:" /></span>
+                    <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
+                      <span className="text-emerald-600 text-base">📊</span> <EditableText id="mig_src_excel" initialText="ملفات Excel & CSV" />
+                    </motion.div>
+                    <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
+                      <span className="text-blue-600 text-base">📁</span> <EditableText id="mig_src_pdf" initialText="فواتير PDF" />
+                    </motion.div>
+                    <motion.div {...dragProps} className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:scale-105 transition-transform cursor-grab active:cursor-grabbing">
+                      <span className="text-purple-600 text-base">🔄</span> <EditableText id="mig_src_other" initialText="البرامج المحاسبية الأخرى" />
+                    </motion.div>
                   </div>
-                  <motion.span {...dragProps} className="text-[11px] font-black text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300/50 cursor-grab active:cursor-grabbing">
-                    <EditableText id="mig_status_pill" initialText="نقل وتطابق آلي 100%" />
-                  </motion.span>
-                </div>
 
-                <motion.div {...dragProps} className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg border border-amber-400/50 text-center space-y-2 cursor-grab active:cursor-grabbing">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-xl font-black">
-                    M
+                  <div className="flex flex-col items-center justify-center space-y-2 py-4 md:py-0">
+                    <div className="w-full bg-amber-100 h-1.5 rounded-full relative overflow-hidden max-w-[180px]">
+                      <motion.div 
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+                        className="w-1/2 h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"
+                      />
+                    </div>
+                    <motion.span {...dragProps} className="text-[11px] font-black text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300/50 cursor-grab active:cursor-grabbing">
+                      <EditableText id="mig_status_pill" initialText="نقل وتطابق آلي 100%" />
+                    </motion.span>
                   </div>
-                  <h4 className="font-extrabold text-sm"><EditableText id="mig_target_head" initialText="منصة مزيد الموحدة" /></h4>
-                  <p className="text-[11px] text-amber-100"><EditableText id="mig_target_sub" initialText="جاهزة للاستخدام التلقائي فوراً" /></p>
-                </motion.div>
 
-              </div>
-            </motion.div>
+                  <motion.div {...dragProps} className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg border border-amber-400/50 text-center space-y-2 cursor-grab active:cursor-grabbing">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-xl font-black">
+                      M
+                    </div>
+                    <h4 className="font-extrabold text-sm"><EditableText id="mig_target_head" initialText="منصة مزيد الموحدة" /></h4>
+                    <p className="text-[11px] text-amber-100"><EditableText id="mig_target_sub" initialText="جاهزة للاستخدام التلقائي فوراً" /></p>
+                  </motion.div>
+
+                </div>
+              </motion.div>
+            </ResizableWrapper>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <motion.div 
-                {...dragProps}
-                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10"
-              >
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg">
-                  🛡️
-                </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat1_title" initialText="استيراد بيانات آمن" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat1_desc" initialText="تشفير كامل لبياناتك المالية دون أي مخاطرة أو احتمالية لفقدان البيانات." /></p>
-              </motion.div>
+              <ResizableWrapper id="card_mig_feat_1" defaultWidth="100%">
+                <motion.div 
+                  {...dragProps}
+                  className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center text-lg">
+                    🛡️
+                  </div>
+                  <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat1_title" initialText="استيراد بيانات آمن" /></h4>
+                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat1_desc" initialText="تشفير كامل لبياناتك المالية دون أي مخاطرة أو احتمالية لفقدان البيانات." /></p>
+                </motion.div>
+              </ResizableWrapper>
 
-              <motion.div 
-                {...dragProps}
-                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10"
-              >
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-lg">
-                  ⚡
-                </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat2_title" initialText="جاهزية من اليوم الأول" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat2_desc" initialText="لا حاجة لفترات تهيئة طويلة، يمكنك إظهار التقارير وإصدار الفواتير فوراً." /></p>
-              </motion.div>
+              <ResizableWrapper id="card_mig_feat_2" defaultWidth="100%">
+                <motion.div 
+                  {...dragProps}
+                  className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-lg">
+                    ⚡
+                  </div>
+                  <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat2_title" initialText="جاهزية من اليوم الأول" /></h4>
+                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat2_desc" initialText="لا حاجة لفترات تهيئة طويلة، يمكنك إظهار التقارير وإصدار الفواتير فوراً." /></p>
+                </motion.div>
+              </ResizableWrapper>
 
-              <motion.div 
-                {...dragProps}
-                className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10"
-              >
-                <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-lg">
-                  🚫
-                </div>
-                <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat3_title" initialText="بدون إدخال يدوي" /></h4>
-                <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat3_desc" initialText="نظام مطابقة الخانات ذكياً يتعرف على أنواع البيانات ويوزعها في مكانها." /></p>
-              </motion.div>
+              <ResizableWrapper id="card_mig_feat_3" defaultWidth="100%">
+                <motion.div 
+                  {...dragProps}
+                  className="bg-white border border-gray-200/90 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-400 transition-all text-right space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 font-bold flex items-center justify-center text-lg">
+                    🚫
+                  </div>
+                  <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="mig_feat3_title" initialText="بدون إدخال يدوي" /></h4>
+                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="mig_feat3_desc" initialText="نظام مطابقة الخانات ذكياً يتعرف على أنواع البيانات ويوزعها في مكانها." /></p>
+                </motion.div>
+              </ResizableWrapper>
             </div>
 
             <div className="pt-4">
-              <motion.a 
-                {...dragProps}
-                href="/register" 
-                className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing"
-              >
-                <span><EditableText id="mig_cta_btn" initialText="جرب أداة الترحيل الذكي مجاناً" /></span>
-                <span className="text-amber-400">←</span>
-              </motion.a>
+              <ResizableWrapper id="button_mig_cta" defaultWidth="auto">
+                <motion.a 
+                  {...dragProps}
+                  href="/register" 
+                  className="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing"
+                >
+                  <span><EditableText id="mig_cta_btn" initialText="جرب أداة الترحيل الذكي مجاناً" /></span>
+                  <span className="text-amber-400">←</span>
+                </motion.a>
+              </ResizableWrapper>
             </div>
 
           </div>
@@ -1200,59 +1207,59 @@ export default function Home() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <ResizableWrapper id="card_app_1" defaultWidth="100%">
-                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xl mb-3">
-                    🤖
-                  </div>
-                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat1_title" initialText="مسح ذكي للفواتير (AI)" /></h4>
-                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat1_desc" initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
-                </motion.div>
+                  <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing h-full">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xl mb-3">
+                      🤖
+                    </div>
+                    <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat1_title" initialText="مسح ذكي للفواتير (AI)" /></h4>
+                    <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat1_desc" initialText="قراءة المبالغ، التواريخ، والضرائب تلقائياً بدقة تصل إلى 99.8%." /></p>
+                  </motion.div>
                 </ResizableWrapper>
 
                 <ResizableWrapper id="card_app_2" defaultWidth="100%">
-                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xl mb-3">
-                    ⚡
-                  </div>
-                  <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat2_title" initialText="تنسيق وتحديث لحظي" /></h4>
-                  <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat2_desc" initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
-                </motion.div>
+                  <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing h-full">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xl mb-3">
+                      ⚡
+                    </div>
+                    <h4 className="font-extrabold text-gray-900 text-sm mb-1"><EditableText id="app_feat2_title" initialText="تنسيق وتحديث لحظي" /></h4>
+                    <p className="text-xs text-gray-500 leading-relaxed"><EditableText id="app_feat2_desc" initialText="مزامنة فورية بين هاتفك ولوحة التحكم الرئيسية دون أي تأخير." /></p>
+                  </motion.div>
                 </ResizableWrapper>
 
                 <ResizableWrapper id="card_app_3" defaultWidth="100%" className="sm:col-span-2">
-                <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all sm:col-span-2 cursor-grab active:cursor-grabbing">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xl shrink-0">
-                      🔔
+                  <motion.div {...dragProps} className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-grab active:cursor-grabbing h-full">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xl shrink-0">
+                        🔔
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="app_feat3_title" initialText="التنبيهات الاستباقية Smart Alerts" /></h4>
+                        <p className="text-xs text-gray-500 mt-0.5"><EditableText id="app_feat3_desc" initialText="تنبيهك قبل استحقاق الفواتير وإشعارك بالمدفوعات المتأخرة أولاً بأول." /></p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-extrabold text-gray-900 text-sm"><EditableText id="app_feat3_title" initialText="التنبيهات الاستباقية Smart Alerts" /></h4>
-                      <p className="text-xs text-gray-500 mt-0.5"><EditableText id="app_feat3_desc" initialText="تنبيهك قبل استحقاق الفواتير وإشعارك بالمدفوعات المتأخرة أولاً بأول." /></p>
-                    </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
                 </ResizableWrapper>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <ResizableWrapper id="button_app_store">
-                <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
-                  <span className="text-xl"></span>
-                  <div className="text-right leading-tight">
-                    <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
-                    <span className="text-sm font-extrabold">App Store</span>
-                  </div>
-                </motion.a>
+                <ResizableWrapper id="button_app_store" defaultWidth="auto">
+                  <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
+                    <span className="text-xl"></span>
+                    <div className="text-right leading-tight">
+                      <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
+                      <span className="text-sm font-extrabold">App Store</span>
+                    </div>
+                  </motion.a>
                 </ResizableWrapper>
 
-                <ResizableWrapper id="button_google_play">
-                <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
-                  <span className="text-xl">▶</span>
-                  <div className="text-right leading-tight">
-                    <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
-                    <span className="text-sm font-extrabold">Google Play</span>
-                  </div>
-                </motion.a>
+                <ResizableWrapper id="button_google_play" defaultWidth="auto">
+                  <motion.a {...dragProps} href="#" className="bg-gray-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-grab active:cursor-grabbing">
+                    <span className="text-xl">▶</span>
+                    <div className="text-right leading-tight">
+                      <span className="block text-[9px] text-gray-400 uppercase tracking-wider">حمّل من</span>
+                      <span className="text-sm font-extrabold">Google Play</span>
+                    </div>
+                  </motion.a>
                 </ResizableWrapper>
               </div>
             </div>
@@ -1378,15 +1385,16 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {personas.map((p, idx) => (
-              <motion.div 
-                key={idx} 
-                {...dragProps}
-                className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-4 text-right cursor-grab active:cursor-grabbing z-10"
-              >
-                <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full"><EditableText id={`persona_tag_${idx}`} initialText={p.tag} /></span>
-                <h3 className="text-xl font-bold text-gray-900"><EditableText id={`persona_title_${idx}`} initialText={p.title} /></h3>
-                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed"><EditableText id={`persona_desc_${idx}`} initialText={p.desc} /></p>
-              </motion.div>
+              <ResizableWrapper key={idx} id={`card_persona_${idx}`} defaultWidth="100%">
+                <motion.div 
+                  {...dragProps}
+                  className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-4 text-right cursor-grab active:cursor-grabbing z-10 h-full"
+                >
+                  <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full"><EditableText id={`persona_tag_${idx}`} initialText={p.tag} /></span>
+                  <h3 className="text-xl font-bold text-gray-900"><EditableText id={`persona_title_${idx}`} initialText={p.title} /></h3>
+                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed"><EditableText id={`persona_desc_${idx}`} initialText={p.desc} /></p>
+                </motion.div>
+              </ResizableWrapper>
             ))}
           </div>
         </div>
@@ -1395,44 +1403,191 @@ export default function Home() {
       {/* 9. SECTION: مستشارو مزيد */}
       <section id="advisory" className="py-20 bg-white border-t border-gray-200">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          <motion.div {...dragProps} className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden cursor-grab active:cursor-grabbing">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="space-y-4 max-w-xl text-right relative z-10">
-              <span className="bg-amber-500 text-gray-900 text-xs font-black px-3.5 py-1.5 rounded-full inline-block shadow-sm">
-                <EditableText id="adv_badge" initialText="مستشارو مزيد" />
-              </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
-                <EditableText id="adv_title" initialText="احصل على خبراء ماليين، وليس مجرد برامج" />
-              </h2>
-              <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-medium">
-                <EditableText id="adv_desc" initialText="تجنّب الغرامات واضمن امتثال كامل مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب" />
-              </p>
+          <ResizableWrapper id="card_advisory_main" defaultWidth="100%">
+            <motion.div {...dragProps} className="bg-gradient-to-br from-slate-900 via-slate-900 to-gray-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl border border-gray-800 relative overflow-hidden cursor-grab active:cursor-grabbing w-full">
+              <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
               
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-amber-400">
-                <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_1" initialText="مستشارون معتمدون من FTA" /></span>
-                <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_2" initialText="استجابة فورية" /></span>
+              <div className="space-y-4 max-w-xl text-right relative z-10">
+                <span className="bg-amber-500 text-gray-900 text-xs font-black px-3.5 py-1.5 rounded-full inline-block shadow-sm">
+                  <EditableText id="adv_badge" initialText="مستشارو مزيد" />
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+                  <EditableText id="adv_title" initialText="احصل على خبراء ماليين، وليس مجرد برامج" />
+                </h2>
+                <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-medium">
+                  <EditableText id="adv_desc" initialText="تجنّب الغرامات واضمن امتثال كامل مع محاسبين ومستشارين ضريبيين معتمدين جاهزين لخدمتك عند الطلب" />
+                </p>
+                
+                <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-amber-400">
+                  <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_1" initialText="مستشارون معتمدون من FTA" /></span>
+                  <span className="flex items-center gap-1.5">✓ <EditableText id="adv_check_2" initialText="استجابة فورية" /></span>
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full lg:w-auto">
-              <a 
-                href="#pricing" 
-                className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold px-8 py-4 rounded-2xl text-center text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
-              >
-                <EditableText id="adv_cta_book" initialText="احجز استشارة مجانية" />
-              </a>
-              <a 
-                href="#faq" 
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-6 py-4 rounded-2xl text-center text-sm transition-all backdrop-blur-sm"
-              >
-                <EditableText id="adv_cta_more" initialText="تعرف على المزيد" />
-              </a>
-            </div>
-          </motion.div>
+              <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full lg:w-auto">
+                <a 
+                  href="#pricing" 
+                  className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-extrabold px-8 py-4 rounded-2xl text-center text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
+                >
+                  <EditableText id="adv_cta_book" initialText="احجز استشارة مجانية" />
+                </a>
+                <a 
+                  href="#faq" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-6 py-4 rounded-2xl text-center text-sm transition-all backdrop-blur-sm"
+                >
+                  <EditableText id="adv_cta_more" initialText="تعرف على المزيد" />
+                </a>
+              </div>
+            </motion.div>
+          </ResizableWrapper>
         </div>
       </section>
+{/* قسم آراء العملاء والشخصيات (Testimonials Section) */}
+<section className="py-20 bg-slate-900 text-white relative overflow-hidden border-t border-slate-800">
+  <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+    
+    <div className="text-center space-y-4 max-w-2xl mx-auto mb-16">
+      <motion.div 
+        {...dragProps}
+        className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-sm cursor-grab active:cursor-grabbing"
+      >
+        <span><EditableText id="testi_badge" initialText="🌟 آراء العملاء والخبراء" /></span>
+      </motion.div>
 
+      <motion.h2 
+        {...dragProps}
+        className="text-3xl sm:text-4xl font-black text-white leading-tight cursor-grab active:cursor-grabbing"
+      >
+        <EditableText id="testi_title_1" initialText="ماذا يقول عنّا" /> <span className="text-amber-400"><EditableText id="testi_title_2" initialText="شركاء النجاح؟" /></span>
+      </motion.h2>
+
+      <motion.p 
+        {...dragProps}
+        className="text-gray-400 text-sm sm:text-base font-medium leading-relaxed cursor-grab active:cursor-grabbing"
+      >
+        <EditableText id="testi_desc" initialText="نعتز بكوننا الخيار الأول لأكثر من 4,000 رائد أعمال ومحاسب ومؤسسة في دولة الإمارات." />
+      </motion.p>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      {/* الشخصية الأولى */}
+      <ResizableWrapper id="card_testi_1" defaultWidth="100%">
+        <motion.div 
+          {...dragProps}
+          className="bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 p-6 rounded-2xl shadow-xl space-y-5 text-right cursor-grab active:cursor-grabbing z-10 h-full flex flex-col justify-between transition-all"
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-amber-400 text-sm">★★★★★</span>
+              <span className="text-[10px] bg-slate-700 text-amber-300 font-bold px-2 py-0.5 rounded-md">
+                <EditableText id="testi_1_tag" initialText="مدير مالي" />
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
+              "<EditableText id="testi_1_quote" initialText="نظام مزيد سهّل علينا الفوترة والامتثال الضريبي بالكامل خلال أيام قليلة دون الحاجة لإعادة إدخال البيانات يدويًا." />"
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-700/60">
+            <EditableImage 
+              id="testi_1_avatar" 
+              initialSrc="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" 
+              alt="سارة العامري" 
+              className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shrink-0 shadow-md" 
+              imgClassName="w-full h-full object-cover" 
+            />
+            <div className="text-right">
+              <h4 className="font-extrabold text-sm text-white">
+                <EditableText id="testi_1_name" initialText="سارة العامري" />
+              </h4>
+              <p className="text-[11px] text-amber-400 font-semibold">
+                <EditableText id="testi_1_role" initialText="مديرة الحسابات • شركة الأفق" />
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </ResizableWrapper>
+
+      {/* الشخصية الثانية */}
+      <ResizableWrapper id="card_testi_2" defaultWidth="100%">
+        <motion.div 
+          {...dragProps}
+          className="bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 p-6 rounded-2xl shadow-xl space-y-5 text-right cursor-grab active:cursor-grabbing z-10 h-full flex flex-col justify-between transition-all"
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-amber-400 text-sm">★★★★★</span>
+              <span className="text-[10px] bg-slate-700 text-amber-300 font-bold px-2 py-0.5 rounded-md">
+                <EditableText id="testi_2_tag" initialText="رائد أعمال" />
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
+              "<EditableText id="testi_2_quote" initialText="أداة مسح الفواتير بالذكاء الاصطناعي عبر تطبيق الهاتف وفرت على فريقنا عشرات الساعات شهرياً وأنهت الأخطاء المحاسبية." />"
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-700/60">
+            <EditableImage 
+              id="testi_2_avatar" 
+              initialSrc="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" 
+              alt="خالد المنصوري" 
+              className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shrink-0 shadow-md" 
+              imgClassName="w-full h-full object-cover" 
+            />
+            <div className="text-right">
+              <h4 className="font-extrabold text-sm text-white">
+                <EditableText id="testi_2_name" initialText="خالد المنصوري" />
+              </h4>
+              <p className="text-[11px] text-amber-400 font-semibold">
+                <EditableText id="testi_2_role" initialText="مؤسس • مجموعة المنصوري للحلول" />
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </ResizableWrapper>
+
+      {/* الشخصية الثالثة */}
+      <ResizableWrapper id="card_testi_3" defaultWidth="100%">
+        <motion.div 
+          {...dragProps}
+          className="bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 p-6 rounded-2xl shadow-xl space-y-5 text-right cursor-grab active:cursor-grabbing z-10 h-full flex flex-col justify-between transition-all"
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-amber-400 text-sm">★★★★★</span>
+              <span className="text-[10px] bg-slate-700 text-amber-300 font-bold px-2 py-0.5 rounded-md">
+                <EditableText id="testi_3_tag" initialText="مستشار ضريبي" />
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
+              "<EditableText id="testi_3_quote" initialText="التطابق الكامل مع معايير الهيئة الاتحادية للضرائب (FTA) جعلني أرشح مزيد لجميع عملائي من الشركات المتوسطة." />"
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-700/60">
+            <EditableImage 
+              id="testi_3_avatar" 
+              initialSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+              alt="م. مريم الكعبي" 
+              className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shrink-0 shadow-md" 
+              imgClassName="w-full h-full object-cover" 
+            />
+            <div className="text-right">
+              <h4 className="font-extrabold text-sm text-white">
+                <EditableText id="testi_3_name" initialText="م. مريم الكعبي" />
+              </h4>
+              <p className="text-[11px] text-amber-400 font-semibold">
+                <EditableText id="testi_3_role" initialText="استشارية مالية قانونية" />
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </ResizableWrapper>
+
+    </div>
+  </div>
+</section>
       {/* 10. SECTION: آلاف الشركات تثق في مزيد */}
       <section className="w-full py-20 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/20 border-y border-amber-100/60">
         <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
@@ -1447,36 +1602,42 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
-            <motion.div 
-              {...dragProps}
-              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 cursor-grab active:cursor-grabbing z-10"
-            >
-              <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
-                +4,000
-              </span>
-              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_1_label" initialText="شركة تم خدمتها" /></p>
-            </motion.div>
+            <ResizableWrapper id="card_trust_stat_1" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
+                  +4,000
+                </span>
+                <p className="text-sm font-bold text-gray-800"><EditableText id="stat_1_label" initialText="شركة تم خدمتها" /></p>
+              </motion.div>
+            </ResizableWrapper>
 
-            <motion.div 
-              {...dragProps}
-              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 cursor-grab active:cursor-grabbing z-10"
-            >
-              <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
-                +2 مليون
-              </span>
-              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_2_label" initialText="معاملة شهرية" /></p>
-            </motion.div>
+            <ResizableWrapper id="card_trust_stat_2" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <span className="text-3xl sm:text-4xl font-black text-amber-600 tracking-tight block dir-ltr">
+                  +2 مليون
+                </span>
+                <p className="text-sm font-bold text-gray-800"><EditableText id="stat_2_label" initialText="معاملة شهرية" /></p>
+              </motion.div>
+            </ResizableWrapper>
 
-            <motion.div 
-              {...dragProps}
-              className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 sm:col-span-2 lg:col-span-1 cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="flex items-center justify-center gap-1.5 dir-ltr">
-                <span className="text-3xl sm:text-4xl font-black text-amber-600">4.7</span>
-                <span className="text-amber-400 text-2xl">★</span>
-              </div>
-              <p className="text-sm font-bold text-gray-800"><EditableText id="stat_3_label" initialText="تقييم عملاء ممتاز" /></p>
-            </motion.div>
+            <ResizableWrapper id="card_trust_stat_3" defaultWidth="100%" className="sm:col-span-2 lg:col-span-1">
+              <motion.div 
+                {...dragProps}
+                className="w-full bg-white p-8 rounded-2xl border border-gray-200/90 shadow-sm hover:border-amber-400 hover:shadow-md transition-all text-center space-y-2 cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="flex items-center justify-center gap-1.5 dir-ltr">
+                  <span className="text-3xl sm:text-4xl font-black text-amber-600">4.7</span>
+                  <span className="text-amber-400 text-2xl">★</span>
+                </div>
+                <p className="text-sm font-bold text-gray-800"><EditableText id="stat_3_label" initialText="تقييم عملاء ممتاز" /></p>
+              </motion.div>
+            </ResizableWrapper>
           </div>
 
           <div className="pt-8 border-t border-gray-100">
@@ -1535,254 +1696,221 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <motion.div 
-              {...dragProps}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                🧮
-              </div>
-              <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
-                <EditableText id="tax_card1_title" initialText="حساب سلس للضرائب" />
-              </h3>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText id="tax_card1_desc" initialText="تطبيق سريع لضريبة القيمة المضافة وضريبة الشركات على كل معاملة دون إعداد يدوي." />
-              </p>
-            </motion.div>
-
-            <motion.div 
-              {...dragProps}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 font-bold flex items-center justify-center text-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                📈
-              </div>
-              <h3 className="text-base font-black text-gray-900 group-hover:text-teal-700 transition-colors">
-                <EditableText id="tax_card2_title" initialText="متابعة الضرائب" />
-              </h3>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText id="tax_card2_desc" initialText="راقب التزامات ضريبة القيمة المضافة والشركات لحظة بلحظة مع فئات الخصم الجاهزة." />
-              </p>
-            </motion.div>
-
-            <motion.div 
-              {...dragProps}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-2xl group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                📄
-              </div>
-              <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
-                <EditableText id="tax_card3_title" initialText="تقارير جاهزة للهيئة الاتحادية للضرائب" />
-              </h3>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText id="tax_card3_desc" initialText="أنشئ إقرارات وملخصات ضريبة القيمة المضافة وضريبة الشركات بالتنسيق المطلوب رسمياً من الهيئة." />
-              </p>
-            </motion.div>
-
-            <motion.div 
-              {...dragProps}
-              className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10"
-            >
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                🔔
-              </div>
-              <h3 className="text-base font-black text-gray-900 group-hover:text-purple-700 transition-colors">
-                <EditableText id="tax_card4_title" initialText="متابعة المدفوعات الضريبية" />
-              </h3>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                <EditableText id="tax_card4_desc" initialText="شاهد المبالغ المستحقة ومواعيد الدفع القادمة مع مؤشرات حالة واضحة وتنبيهات مبكرة." />
-              </p>
-            </motion.div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 12. Social Proof & Partners */}
-      <section className="py-20 bg-gray-50 border-t border-gray-200 overflow-hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          
-          <div className="text-center mb-16 space-y-3">
-            <h2 className="text-3xl font-black text-gray-900"><EditableText id="proof_sec_title" initialText="شركاء النجاح" /></h2>
-            <p className="text-sm font-bold text-gray-500"><EditableText id="proof_sec_desc" initialText="قصص حقيقية ونتائج ملموسة" /></p>
-          </div>
-
-          <motion.div {...dragProps} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-16 text-center space-y-4 cursor-grab active:cursor-grabbing">
-            <p className="text-base sm:text-lg italic text-gray-700 font-medium leading-relaxed">
-              &quot;<EditableText id="testimonial_quote" initialText="تحميل السجلات المالية أمر سهل للغاية مع مزيد. يتم تخزين جميع البيانات بشكل آمن رقميًا، مما يلغي الحاجة للأعمال الورقية. خدمة العملاء متجاوبة وممتازة دائماً!" />&quot;
-            </p>
-            <div>
-              <p className="font-extrabold text-sm text-gray-900"><EditableText id="testimonial_author" initialText="د. سارة المنصوري" /></p>
-              <p className="text-xs text-gray-500 font-semibold"><EditableText id="testimonial_role" initialText="مؤسسة ورئيسة تنفيذية • شركة الحلول المبتكرة" /></p>
-            </div>
-          </motion.div>
-
-          <div className="space-y-4">
-            <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
-              <EditableText id="partners_grid_head" initialText="شركاؤنا المميزون في الإمارات" />
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              {partnerLogos.map((partner) => (
-                <div key={partner.id} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col items-center justify-center text-center shadow-sm">
-                  <div className="w-12 h-12 rounded-full overflow-hidden mb-2 bg-gray-100">
-                    <EditableImage id={`partner_img_${partner.id}`} initialSrc={partner.image} alt={partner.name} className="w-full h-full" imgClassName="w-full h-full object-cover" />
-                  </div>
-                  <h4 className="text-xs font-bold text-gray-800"><EditableText id={`partner_name_${partner.id}`} initialText={partner.name} /></h4>
-                  <p className="text-[10px] text-gray-500"><EditableText id={`partner_role_${partner.id}`} initialText={partner.role} /></p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 13. Pricing Section */}
-      <section id="pricing" className="py-24 bg-white border-t border-gray-200 relative overflow-hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
-          
-          <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
-            <motion.div {...dragProps} className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black shadow-sm cursor-grab active:cursor-grabbing">
-              <EditableText id="pricing_badge" initialText="🏷️ خطط أسعار شفافة ومناسبة للجميع" />
-            </motion.div>
-            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 cursor-grab active:cursor-grabbing">
-              <EditableText id="pricing_title" initialText="اختر الخطة المناسبة لنشاطك التجاري" />
-            </motion.h2>
-            <motion.p {...dragProps} className="text-sm text-gray-600 font-medium cursor-grab active:cursor-grabbing">
-              <EditableText id="pricing_subtitle" initialText="بدون تكاليف خفية. يمكنك الترقية أو التغيير في أي وقت." />
-            </motion.p>
-
-            <div className="pt-4 flex items-center justify-center gap-4">
-              <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>شهري</span>
-              <button
-                onClick={() => setBillingCycle(billingCycle === 'annual' ? 'monthly' : 'annual')}
-                className="w-14 h-8 bg-gray-900 rounded-full p-1 transition-colors relative"
+            <ResizableWrapper id="card_tax_1" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10 h-full"
               >
-                <div className={`w-6 h-6 bg-amber-500 rounded-full transition-transform ${billingCycle === 'annual' ? 'translate-x-0' : '-translate-x-6'}`} />
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                  🧮
+                </div>
+                <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-700 transition-colors">
+                  <EditableText id="tax_card1_title" initialText="حساب سلس للضرائب" />
+                </h3>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  <EditableText id="tax_card1_desc" initialText="تطبيق سريع لضريبة القيمة المضافة وضريبة الشركات على كل معاملة دون إعداد يدوي." />
+                </p>
+              </motion.div>
+            </ResizableWrapper>
+
+            <ResizableWrapper id="card_tax_2" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 font-bold flex items-center justify-center text-2xl group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                  📈
+                </div>
+                <h3 className="text-base font-black text-gray-900 group-hover:text-teal-700 transition-colors">
+                  <EditableText id="tax_card2_title" initialText="متابعة الضرائب" />
+                </h3>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  <EditableText id="tax_card2_desc" initialText="راقب التزامات ضريبة القيمة المضافة والشركات لحظة بلحظة مع تقارير وإقرارات فورية." />
+                </p>
+              </motion.div>
+            </ResizableWrapper>
+
+            <ResizableWrapper id="card_tax_3" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-700 font-bold flex items-center justify-center text-2xl group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                  📑
+                </div>
+                <h3 className="text-base font-black text-gray-900 group-hover:text-cyan-700 transition-colors">
+                  <EditableText id="tax_card3_title" initialText="إقرارات ضريبية جاهزة" />
+                </h3>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  <EditableText id="tax_card3_desc" initialText="إنشاء إقرارات ضريبة القيمة المضافة والشركات بدقة وتجهيزها للرفع المباشر على بوابات FTA." />
+                </p>
+              </motion.div>
+            </ResizableWrapper>
+
+            <ResizableWrapper id="card_tax_4" defaultWidth="100%">
+              <motion.div 
+                {...dragProps}
+                className="bg-slate-50/70 border border-gray-200 hover:border-emerald-500 p-7 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 space-y-4 text-right group cursor-grab active:cursor-grabbing z-10 h-full"
+              >
+                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-2xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                  👨‍💼
+                </div>
+                <h3 className="text-base font-black text-gray-900 group-hover:text-amber-700 transition-colors">
+                  <EditableText id="tax_card4_title" initialText="الدعم والاستشارات الضريبية" />
+                </h3>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  <EditableText id="tax_card4_desc" initialText="تواصل مع خبراء ومستشارين ضريبيين معتمدين لضمان الامتثال التام وتجنب أية غرامات مالية." />
+                </p>
+              </motion.div>
+            </ResizableWrapper>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 12. SECTION: خطط الأسعار (Pricing) */}
+      <section id="pricing" className="py-24 bg-slate-50 border-t border-gray-200">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center space-y-4 max-w-3xl mx-auto">
+            <motion.span {...dragProps} className="text-amber-600 font-bold text-xs uppercase tracking-widest inline-block cursor-grab active:cursor-grabbing">
+              <EditableText id="price_sec_badge" initialText="خطط مرنة تناسب الجميع" />
+            </motion.span>
+            <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight cursor-grab active:cursor-grabbing">
+              <EditableText id="price_sec_title" initialText="اختر الخطة المناسبة لنشاطك التجاري" />
+            </motion.h2>
+            <p className="text-xs sm:text-sm text-gray-600 font-medium">
+              <EditableText id="price_sec_sub" initialText="جميع الخطط تشمل تحديثات الأمان المجانية والامتثال التام لقوانين الضرائب الإماراتية." />
+            </p>
+
+            {/* Toggle Billing Cycle */}
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
+              >
+                الدفع الشهري
               </button>
-              <div className="flex items-center gap-1.5">
-                <span className={`text-xs font-bold ${billingCycle === 'annual' ? 'text-gray-900' : 'text-gray-500'}`}>سنوي</span>
-                <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300">وفّر 50%</span>
-              </div>
+              <button
+                onClick={() => setBillingCycle('annual')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${billingCycle === 'annual' ? 'bg-amber-500 text-gray-900 shadow-md font-black' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
+              >
+                <span>الدفع السنوي</span>
+                <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full">خصم 50%</span>
+              </button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {pricingPlans.map((plan, idx) => (
-              <motion.div
-                key={idx}
-                {...dragProps}
-                className={`bg-white rounded-3xl p-6 border shadow-sm flex flex-col justify-between relative cursor-grab active:cursor-grabbing z-10 ${
-                  plan.popular ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-xl' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3.5 right-1/2 translate-x-1/2 bg-amber-500 text-gray-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-md">
-                    الأكثر شعبية 🌟
-                  </span>
-                )}
-
-                <div className="space-y-4 text-right">
-                  <div>
-                    <h3 className="text-xl font-extrabold text-gray-900"><EditableText id={`plan_${idx}_name`} initialText={plan.name} /></h3>
-                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]"><EditableText id={`plan_${idx}_desc`} initialText={plan.desc} /></p>
-                  </div>
-
-                  <div className="py-2 border-y border-gray-100">
-                    <div className="flex items-baseline gap-1">
-                      {typeof plan.priceAnnual === 'number' ? (
-                        <>
-                          <span className="text-3xl font-black text-gray-900">
-                            {billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly}
-                          </span>
-                          <span className="text-xs font-bold text-gray-500">درهم / شهرياً</span>
-                        </>
-                      ) : (
-                        <span className="text-2xl font-black text-gray-900">{plan.priceAnnual}</span>
-                      )}
+              <ResizableWrapper key={idx} id={`card_pricing_${idx}`} defaultWidth="100%">
+                <motion.div
+                  {...dragProps}
+                  className={`p-6 rounded-3xl bg-white border ${plan.popular ? 'border-2 border-amber-500 shadow-xl relative' : 'border-gray-200 shadow-sm'} flex flex-col justify-between text-right cursor-grab active:cursor-grabbing h-full z-10`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-gray-900 text-[10px] font-black px-3 py-1 rounded-full shadow-md">
+                      الأكثر شعبية 🌟
                     </div>
-                    <span className="text-[10px] font-bold text-amber-600 block mt-1"><EditableText id={`plan_${idx}_save`} initialText={plan.saveText} /></span>
+                  )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900"><EditableText id={`plan_name_${idx}`} initialText={plan.name} /></h3>
+                      <p className="text-xs text-gray-500 mt-1 font-medium"><EditableText id={`plan_desc_${idx}`} initialText={plan.desc} /></p>
+                    </div>
+
+                    <div className="py-2 border-y border-gray-100">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-black text-gray-900">
+                          {typeof plan.priceAnnual === 'number'
+                            ? (billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly)
+                            : plan.priceAnnual}
+                        </span>
+                        {typeof plan.priceAnnual === 'number' && (
+                          <span className="text-xs text-gray-500 font-bold">درهم / شهرياً</span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-600 block mt-1"><EditableText id={`plan_save_${idx}`} initialText={plan.saveText} /></span>
+                    </div>
+
+                    <ul className="space-y-2.5 text-xs text-gray-700 font-medium">
+                      {plan.features.map((feat, fIdx) => (
+                        <li key={fIdx} className="flex items-center gap-2">
+                          <span className="text-amber-500 font-bold">✓</span>
+                          <span><EditableText id={`plan_${idx}_feat_${fIdx}`} initialText={feat} /></span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs text-gray-700 pt-2">
-                    {plan.features.map((feat, fIdx) => (
-                      <li key={fIdx} className="flex items-center gap-2">
-                        <span className="text-emerald-500 font-bold">✓</span>
-                        <span><EditableText id={`plan_${idx}_f_${fIdx}`} initialText={feat} /></span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="pt-6 mt-6 border-t border-gray-100">
-                  <Link
-                    to="/register"
-                    className={`w-full py-3 rounded-xl font-bold text-xs text-center block transition-all ${
-                      plan.popular
-                        ? 'bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-md'
-                        : 'bg-gray-900 hover:bg-black text-white'
-                    }`}
-                  >
-                    <EditableText id={`plan_${idx}_cta`} initialText={plan.cta} />
-                  </Link>
-                </div>
-              </motion.div>
+                  <div className="pt-6 mt-6 border-t border-gray-100">
+                    <Link
+                      to="/register"
+                      className={`w-full py-3 rounded-xl font-extrabold text-xs text-center block transition-all ${plan.popular ? 'bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-md' : 'bg-gray-900 hover:bg-black text-white'}`}
+                    >
+                      <EditableText id={`plan_cta_${idx}`} initialText={plan.cta} />
+                    </Link>
+                  </div>
+                </motion.div>
+              </ResizableWrapper>
             ))}
           </div>
 
         </div>
       </section>
 
-      {/* 14. FAQ Section */}
-      <section id="faq" className="py-24 bg-gray-50 border-t border-gray-200">
-        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+      {/* 13. SECTION: الأسئلة الشائعة (FAQ) */}
+      <section id="faq" className="py-24 bg-white border-t border-gray-200">
+        <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12">
           
-          <div className="text-center space-y-3 max-w-2xl mx-auto mb-16">
-            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing">
-              <EditableText id="faq_sec_title" initialText="الأسئلة الشائعة" />
-            </motion.h2>
-            <motion.p {...dragProps} className="text-sm font-medium text-gray-600 cursor-grab active:cursor-grabbing">
-              <EditableText id="faq_sec_desc" initialText="إجابات على الأسئلة الأكثر تكراراً حول نظام مزيد للحلول المحاسبية" />
-            </motion.p>
+          <div className="text-center space-y-3">
+            <motion.h2 {...dragProps} className="text-3xl font-black text-gray-900 cursor-grab active:cursor-grabbing"><EditableText id="faq_title" initialText="الأسئلة الشائعة" /></motion.h2>
+            <p className="text-xs sm:text-sm text-gray-600 font-medium"><EditableText id="faq_sub" initialText="إليك إجابات لأكثر الأسئلة تكراراً حول منصة مزيد والخدمات المحاسبية" /></p>
           </div>
 
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="space-y-3">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div 
-                  key={idx} 
-                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all"
-                >
+                <div key={idx} className="border border-gray-200 rounded-2xl overflow-hidden transition-all">
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full p-5 text-right font-extrabold text-sm sm:text-base text-gray-900 flex justify-between items-center gap-4 hover:bg-gray-50 transition-colors"
+                    className="w-full p-5 text-right font-extrabold text-xs sm:text-sm text-gray-900 bg-gray-50/60 hover:bg-amber-50/50 flex justify-between items-center transition-colors"
                   >
                     <span><EditableText id={`faq_q_${idx}`} initialText={faq.q} /></span>
-                    <span className="text-amber-500 font-bold text-xl">{isOpen ? '−' : '+'}</span>
+                    <span className="text-amber-600 font-bold text-base">{isOpen ? '−' : '+'}</span>
                   </button>
-
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-5 pt-0 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-gray-100">
-                          <EditableText id={`faq_a_${idx}`} initialText={faq.a} />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {isOpen && (
+                    <div className="p-5 text-xs text-gray-600 bg-white border-t border-gray-100 leading-relaxed font-medium">
+                      <EditableText id={`faq_a_${idx}`} initialText={faq.a} />
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
+        </div>
+      </section>
+
+      {/* 14. CTA Banner Section */}
+      <section className="py-20 bg-gradient-to-r from-gray-900 via-slate-900 to-gray-900 text-white relative overflow-hidden">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
+          <motion.h2 {...dragProps} className="text-3xl sm:text-4xl font-black leading-tight cursor-grab active:cursor-grabbing">
+            <EditableText id="bottom_cta_title" initialText="جاهز لتطوير أعمالك وإدارة حساباتك بذكاء؟" />
+          </motion.h2>
+          <p className="text-xs sm:text-sm text-gray-300 max-w-xl mx-auto font-medium leading-relaxed">
+            <EditableText id="bottom_cta_sub" initialText="انضم إلى أكثر من 4,000 شركة في دولة الإمارات تعتمد على مزيد في الفوترة وإدارة الضرائب والنمو المالي." />
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/register"
+              className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-black text-sm px-8 py-4 rounded-2xl shadow-2xl transition-all inline-block transform hover:-translate-y-0.5"
+            >
+              <EditableText id="bottom_cta_btn" initialText="ابدأ تجربتك المجانية الآن لمدة 14 يوماً" />
+            </Link>
+          </div>
         </div>
       </section>
 
