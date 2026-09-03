@@ -1485,7 +1485,7 @@ export default function Home() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
-              "<EditableText id="testi_1_quote" initialText="نظام مزيد سهّل علينا الفوترة والامتثال الضريبي بالكامل خلال أيام قليلة دون الحاجة لإعادة إدخال البيانات يدويًا." />"
+              <EditableText id="testi_1_quote" initialText="نظام مزيد سهّل علينا الفوترة والامتثال الضريبي بالكامل خلال أيام قليلة دون الحاجة لإعادة إدخال البيانات يدويًا." />
             </p>
           </div>
 
@@ -1523,7 +1523,7 @@ export default function Home() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
-              "<EditableText id="testi_2_quote" initialText="أداة مسح الفواتير بالذكاء الاصطناعي عبر تطبيق الهاتف وفرت على فريقنا عشرات الساعات شهرياً وأنهت الأخطاء المحاسبية." />"
+              <EditableText id="testi_2_quote" initialText="أداة مسح الفواتير بالذكاء الاصطناعي عبر تطبيق الهاتف وفرت على فريقنا عشرات الساعات شهرياً وأنهت الأخطاء المحاسبية." />
             </p>
           </div>
 
@@ -1561,7 +1561,7 @@ export default function Home() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-medium">
-              "<EditableText id="testi_3_quote" initialText="التطابق الكامل مع معايير الهيئة الاتحادية للضرائب (FTA) جعلني أرشح مزيد لجميع عملائي من الشركات المتوسطة." />"
+              <EditableText id="testi_3_quote" initialText="التطابق الكامل مع معايير الهيئة الاتحادية للضرائب (FTA) جعلني أرشح مزيد لجميع عملائي من الشركات المتوسطة." />
             </p>
           </div>
 
